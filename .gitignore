@@ -1,0 +1,23 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+local.properties
+
+# Node
+node_modules/
+
+# Secretos y firma del APK: nunca al repositorio
+.env
+.env.*
+*.jks
+*.keystore
+key.properties
+
+# Sistema
+.DS_Store
+Thumbs.db
