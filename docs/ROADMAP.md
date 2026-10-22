@@ -24,8 +24,8 @@
 
 | Televisor | Sistema | Cómo recibe SandyTV |
 |---|---|---|
-| Noblex 50" (living) | Android TV | APK directo |
-| Philips Ambilight 50" (dormitorio) | **A confirmar** (pedir modelo exacto) | Si es Android TV: APK directo. Si no: un aparato Android por HDMI (Chromecast con Google TV, Fire TV Stick o TV Box) |
+| Noblex 50" **DM50X7550** (etiqueta del TV) | Probablemente Android TV (un modelo parecido, DR50X7550, figura con Android). **A confirmar en el propio televisor**: ¿tiene Google Play Store? | APK directo (pendrive o adb) |
+| Philips 50" **50PUD8100/77** (dormitorio) | Según tiendas argentinas, **Titan OS** (no Android, sin Play Store). **A confirmar en el televisor** | No acepta el APK. Usar un aparato Android por HDMI (Chromecast con Google TV, Fire TV Stick o TV Box) |
 
 ---
 

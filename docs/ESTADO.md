@@ -56,7 +56,8 @@
 
 ## Datos pendientes del dueño
 
-- Modelo exacto del **Philips Ambilight 50"** (etiqueta trasera), para saber si tiene Android TV.
+- ~~Modelos~~ **Recibidos (2026-10-22, por foto de las etiquetas):** Philips **50PUD8100/77** (fabricado por FAPESA) y Noblex **DM50X7550**.
+  Pendiente confirmar el sistema en cada televisor: el Philips probablemente es **Titan OS** (sin APK) y el Noblex probablemente Android TV.
 - Qué controles remotos hay (marca/modelo) y si tienen teclas INFO, GUÍA y de colores.
 
 ## Problemas conocidos
