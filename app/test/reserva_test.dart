@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sandytv/logica/apertura.dart';
 import 'package:sandytv/logica/salud_enlaces.dart';
@@ -20,6 +22,11 @@ class MotorFalso implements MotorVideo {
     intentos.add(e.url);
     if (!funcionan.contains(e.url)) throw Exception('falla');
   }
+}
+
+class MotorLento implements MotorVideo {
+  @override
+  Future<void> abrir(Enlace e, {required Duration timeout}) => throw TimeoutException('x', timeout);
 }
 
 void main() {
@@ -88,6 +95,22 @@ void main() {
       final r = await abrirConReserva(canal('A', [enlace('u1', 90), enlace('u2', 80)]), motor, SaludEnlaces(), timeout: const Duration(seconds: 1));
       expect(r.ok, isFalse);
       expect(motor.intentos.length, 2);
+    });
+
+    test('si fallan todos, guarda el motivo de cada enlace para mostrarlo', () async {
+      final motor = MotorFalso({});
+      final r = await abrirConReserva(
+          canal('A', [enlace('http://uno.com/a.m3u8', 90), enlace('http://dos.com/b.m3u8', 80)]), motor, SaludEnlaces(),
+          timeout: const Duration(seconds: 1));
+      expect(r.errores.length, 2);
+      expect(r.errores.first, startsWith('uno.com: '));
+      expect(r.errores.first, contains('falla'));
+    });
+
+    test('un enlace que no arranca a tiempo lo dice con claridad', () async {
+      final r = await abrirConReserva(canal('A', [enlace('http://lento.com/a.m3u8', 90)]), MotorLento(), SaludEnlaces(),
+          timeout: const Duration(seconds: 3));
+      expect(r.errores.single, 'lento.com: no arrancó en 3 s');
     });
 
     test('la próxima vez prueba primero el enlace que anduvo', () async {

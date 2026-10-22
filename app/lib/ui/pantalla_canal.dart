@@ -43,6 +43,7 @@ class _PantallaCanalState extends State<PantallaCanal> {
   Timer? _timerAviso;
   late final MarcadoNumerico _marcado;
   int _intento = 0;
+  List<String> _errores = const [];
 
   List<Canal> get _canales => widget.estado.cartelera?.canales ?? const [];
 
@@ -82,6 +83,7 @@ class _PantallaCanalState extends State<PantallaCanal> {
       _canal = canal;
       _estadoCanal = _Estado.conectando;
       _enlace = null;
+      _errores = const [];
     });
     widget.estado.recordarCanal(canal);
     final r = await abrirConReserva(canal, _motor, widget.estado.salud, timeout: widget.timeoutApertura, cancelado: () => mio != _intento || !mounted);
@@ -89,6 +91,7 @@ class _PantallaCanalState extends State<PantallaCanal> {
     widget.estado.guardarSalud();
     setState(() {
       _enlace = r.enlace;
+      _errores = r.errores;
       _estadoCanal = r.ok ? _Estado.reproduciendo : _Estado.sinSenal;
     });
     if (r.ok) _mostrarBarra();
@@ -198,7 +201,7 @@ class _PantallaCanalState extends State<PantallaCanal> {
                 return Center(child: AspectRatio(aspectRatio: c.value.aspectRatio == 0 ? 16 / 9 : c.value.aspectRatio, child: VideoPlayer(c)));
               },
             ),
-            if (_estadoCanal != _Estado.reproduciendo) _PantallaEspera(canal: _canal, sinSenal: _estadoCanal == _Estado.sinSenal),
+            if (_estadoCanal != _Estado.reproduciendo) _PantallaEspera(canal: _canal, sinSenal: _estadoCanal == _Estado.sinSenal, detalle: _errores),
             if (_barra && _estadoCanal == _Estado.reproduciendo) _BarraCanal(canal: _canal, enlace: _enlace),
             if (_marcando.isNotEmpty) _NumeroMarcado(texto: _marcando),
             if (_aviso != null) _Aviso(texto: _aviso!),
@@ -210,9 +213,12 @@ class _PantallaCanalState extends State<PantallaCanal> {
 }
 
 class _PantallaEspera extends StatelessWidget {
-  const _PantallaEspera({required this.canal, required this.sinSenal});
+  const _PantallaEspera({required this.canal, required this.sinSenal, this.detalle = const []});
   final Canal canal;
   final bool sinSenal;
+
+  /// Por qué falló cada enlace (para saber si el problema es el canal o el reproductor).
+  final List<String> detalle;
 
   @override
   Widget build(BuildContext context) {
@@ -234,6 +240,11 @@ class _PantallaEspera extends StatelessWidget {
               const Text('Este canal no está disponible ahora', style: TextStyle(fontSize: 22, color: Colores.texto)),
               const SizedBox(height: 8),
               const Text('Con ↑ o ↓ pasás a otro canal · Atrás vuelve al inicio', style: TextStyle(fontSize: 16, color: Colores.textoSuave)),
+              for (final d in detalle.take(3))
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(d, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, color: Colores.textoSuave)),
+                ),
             ],
           ]),
         ),

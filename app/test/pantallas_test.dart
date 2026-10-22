@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sandytv/servicios/estado_app.dart';
 import 'package:sandytv/servicios/repositorio_cartelera.dart';
+import 'package:sandytv/ui/pantalla_ajustes.dart';
 import 'package:sandytv/ui/pantalla_canal.dart';
 import 'package:sandytv/ui/pantalla_inicio.dart';
 import 'package:sandytv/ui/pantalla_presentacion.dart';
@@ -95,6 +96,29 @@ void main() {
     expect(find.text('2'), findsOneWidget);
     await t.pump(const Duration(seconds: 2));
     expect(find.text('2 · TN.ar'), findsOneWidget);
+  });
+
+  testWidgets('la pantalla de prueba de teclas no deja atrapado: Atrás vuelve a Ajustes', (t) async {
+    final estado = await crearEstado();
+    await t.pumpWidget(MaterialApp(home: PantallaAjustes(estado: estado)));
+    await t.pump();
+    await t.tap(find.text('Probar las teclas del control'));
+    await t.pumpAndSettle();
+    expect(find.textContaining('Apretá una tecla'), findsOneWidget);
+    await t.sendKeyEvent(LogicalKeyboardKey.digit5);
+    await t.pump();
+    expect(find.textContaining('Tecla: 5'), findsOneWidget);
+    await t.sendKeyEvent(LogicalKeyboardKey.escape);
+    await t.pumpAndSettle();
+    expect(find.text('Ajustes'), findsOneWidget);
+    expect(find.textContaining('Apretá una tecla'), findsNothing);
+  });
+
+  testWidgets('cuando un canal no abre se muestra el motivo', (t) async {
+    final estado = await crearEstado();
+    await t.pumpWidget(MaterialApp(home: PantallaCanal(estado: estado, canalInicial: estado.cartelera!.canales.first, timeoutApertura: const Duration(milliseconds: 100))));
+    await t.pump(const Duration(seconds: 1));
+    expect(find.textContaining('a: '), findsWidgets, reason: 'el detalle empieza con el servidor del enlace');
   });
 
   testWidgets('la presentación lleva al Inicio con la cartelera incluida', (t) async {

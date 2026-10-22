@@ -67,14 +67,27 @@ class _PantallaTeclasState extends State<PantallaTeclas> {
       body: Focus(
         autofocus: true,
         onKeyEvent: (_, e) {
-          if (e is KeyDownEvent) {
-            final t = mapearTecla(e.logicalKey);
-            setState(() => _ultima =
-                'Tecla: ${e.logicalKey.keyLabel.isEmpty ? e.logicalKey.debugName : e.logicalKey.keyLabel}\nCódigo: ${e.logicalKey.keyId}\nSandyTV la usa para: ${t.accion.name}');
+          if (e is! KeyDownEvent) return KeyEventResult.handled;
+          final t = mapearTecla(e.logicalKey);
+          // Atrás siempre sale: esta pantalla se queda con todas las teclas, así que lo resuelve acá.
+          if (t.accion == Accion.atras) {
+            Navigator.of(context).maybePop();
+            return KeyEventResult.handled;
           }
+          setState(() => _ultima =
+              'Tecla: ${e.logicalKey.keyLabel.isEmpty ? e.logicalKey.debugName : e.logicalKey.keyLabel}\nCódigo: ${e.logicalKey.keyId}\nSandyTV la usa para: ${t.accion.name}');
           return KeyEventResult.handled;
         },
-        child: Center(child: Text(_ultima, textAlign: TextAlign.center, style: const TextStyle(fontSize: 30))),
+        child: Stack(children: [
+          Center(child: Text(_ultima, textAlign: TextAlign.center, style: const TextStyle(fontSize: 30))),
+          const Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: 28),
+              child: Text('Para salir apretá Atrás', style: TextStyle(fontSize: 18, color: Colores.textoSuave)),
+            ),
+          ),
+        ]),
       ),
     );
   }

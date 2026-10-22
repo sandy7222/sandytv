@@ -60,6 +60,7 @@
     las flechas y CH+/CH−, que el volumen anda y que un canal caído no deja la pantalla negra. No se pudo
     probar el video real desde acá (no hay televisor ni emulador conectado).
 - **Instalación en el Noblex (2026-10-22):** por pendrive no se pudo: el televisor (visor y X-plore) no muestra los .apk y no deja renombrar un .jpg. Se publicó una **Release pública** `v0.1.0` (pre-release) con el APK para bajarlo con **Downloader**: https://github.com/sandy7222/sandytv/releases/download/v0.1.0/SandyTV.apk . Pendiente: confirmar si Downloader instala; si el Noblex bloquea todo, usar un aparato Android por HDMI.
+- **Prueba en el Noblex (2026-10-22, versión 0.1.0):** se instaló con Downloader (código de go.aftvnews.com). La interfaz gusta y las teclas de canal y volumen funcionan. Problemas: (1) *Probar las teclas* dejaba atrapado (no salía con Atrás); (2) los canales cambian pero **no se ve video**: causa sin determinar (enlaces caídos o reproductor del televisor). **Versión 0.1.1** (compilada, sin publicar): Atrás sale de la prueba de teclas y la pantalla de canal sin señal muestra el motivo de cada enlace. 48 tests pasan. Pendiente: que el dueño la instale y diga qué motivo aparece.
 - **Pedido nuevo del dueño (2026-10-22):** "Mi lista" (cartelera de favoritos para no usar los ~940 canales),
   con agregar y quitar canales. Anotado como paso **3.5** del roadmap (reemplaza al antiguo "Favoritos").
 - **Pedido nuevo del dueño (2026-10-21):** al abrir la app se ve una **pantalla de inicio de SandyTV** (como la
