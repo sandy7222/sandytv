@@ -24,3 +24,7 @@ Thumbs.db
 
 # Resultado generado de la cartelera
 cartelera/salida/
+
+# APK generados
+instalacion/*.apk
+app/build/

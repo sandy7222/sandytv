@@ -42,6 +42,23 @@
   (se incluyen siempre; si fallan la prueba en GitHub salen sin puntaje de calidad). Pendiente: subirlo con `git push`.
 - Aviso de GitHub: las acciones usadas anuncian pasarse a Node 24; no rompe nada hoy, revisar versiones más
   adelante.
+- **Fase 2, hecha en código (2026-10-22), sin probar todavía en el televisor:** app Flutter en `app/`
+  (paquete `ar.sandytv.sandytv`, versión 0.1.0). **44 tests pasan** (`cd app && flutter test`) y
+  `flutter analyze` no marca nada. Lo hecho: manifiesto de Android TV (leanback, sin pantalla táctil, banner
+  provisorio, http permitido, pantalla encendida), cartelera guardada en el aparato + una copia incluida en la
+  app para el primer arranque sin internet, **presentación → Inicio** (destacado + filas por categoría, sin
+  video), **canal a pantalla completa** con barra propia, **↑/↓ y CH+/CH−**, **números**, **OK** muestra/oculta
+  la barra, **Atrás** vuelve al Inicio (en el Inicio pide confirmar para salir), **enlaces de reserva** con
+  memoria de fallos (un canal con todos los enlaces caídos 3 veces pasa al final de su fila), actualización
+  cada 3 h sin cortar el canal, **volumen no interceptado**, y *Ajustes → Probar las teclas del control* para
+  descubrir qué manda cada control. Las teclas INFO/GUÍA avisan "llega en la próxima versión" (Fase 3).
+  - Decisión: ATRÁS en el canal vuelve al **Inicio** (2.3) y recién en el Inicio pide confirmar la salida.
+  - Compilar en esta PC: Flutter usaba el JDK 25 de Android Studio y Gradle fallaba (mensaje "25.0.2");
+    se fijó el JDK 17 de la PC en `app/android/gradle.properties` (ruta propia de esta máquina).
+  - APK de prueba firmado con la clave de depuración; guía de instalación en `instalacion/LEEME.md`.
+  - **Falta para cerrar la Fase 2:** que el dueño lo instale en el Noblex y confirme que cambia de canal con
+    las flechas y CH+/CH−, que el volumen anda y que un canal caído no deja la pantalla negra. No se pudo
+    probar el video real desde acá (no hay televisor ni emulador conectado).
 - **Pedido nuevo del dueño (2026-10-22):** "Mi lista" (cartelera de favoritos para no usar los ~940 canales),
   con agregar y quitar canales. Anotado como paso **3.5** del roadmap (reemplaza al antiguo "Favoritos").
 - **Pedido nuevo del dueño (2026-10-21):** al abrir la app se ve una **pantalla de inicio de SandyTV** (como la
@@ -49,7 +66,8 @@
 
 ## Qué sigue
 
-1. `git push` del cambio de `forzar` (con OK) y revisar que esos 4 canales aparezcan en la cartelera publicada.
+0. **Instalar el APK en el Noblex y probar** (ver `instalacion/LEEME.md`).
+1. (hecho) `git push` del cambio de `forzar` (con OK) y revisar que esos 4 canales aparezcan en la cartelera publicada.
 2. Pedirle al dueño que abra algunos canales de la cartelera en VLC (criterio de "terminado" de la Fase 1).
 3. Fase 0, paso 4: modelo del Philips (pendiente del dueño).
 4. Después, Fase 2 (app).
