@@ -9,6 +9,7 @@ on:
     branches: [main]
     paths:
       - 'cartelera/**'
+      - 'web/**'
       - '.github/workflows/cartelera.yml'
 
 permissions:
@@ -63,6 +64,8 @@ jobs:
           mkdir -p pagina
           cp cartelera/salida/cartelera.json pagina/cartelera.json
           cp cartelera/salida/informe.json pagina/informe.json
+          # Páginas web de SandyTV (por ahora, la prueba del navegador del Philips en /p/)
+          cp -r web/. pagina/
 
       - uses: actions/configure-pages@v5
         if: steps.armar.outputs.publicar == 'si'
