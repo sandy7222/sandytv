@@ -295,7 +295,29 @@ Los datos que no estén dicen "Sin dato".
 - Logos guardados en caché en el aparato (descargar una vez).
 - Canal sin programación: una sola franja que dice el nombre del canal.
 
-**3.5 Favoritos:** desde la ficha, marcar o desmarcar; aparece la categoría **Favoritos** primera.
+**3.5 Mi lista (cartelera de favoritos) — pedido del dueño, 2026-10-22.** La cartelera completa tiene cientos
+de canales (hoy ~940); el uso diario tiene que ser sobre **una lista corta y propia** de cada televisor.
+- **Dos modos** que se alternan con un botón (por ejemplo, el azul) o desde Ajustes: **Mi lista** (solo los
+  canales elegidos) y **Todos los canales** (la cartelera completa, para descubrir y sumar canales).
+- **Agregar:** desde la ficha del canal (INFO), desde la grilla o manteniendo OK sobre un canal en cualquier
+  fila: "➕ Agregar a Mi lista". **Quitar:** igual, "➖ Quitar de Mi lista". Un canal puede estar en la
+  lista aunque sea de otra categoría.
+- **Primera vez:** la app propone una lista inicial corta (por ejemplo los canales del grupo "Argentina
+  (aire)" mejor puntuados) y el dueño la ajusta. Mi lista **nunca** arranca vacía.
+- **Orden propio:** en Mi lista los canales se pueden **mover** (subir/bajar). CH+/CH− y los números cambian
+  de canal **dentro de Mi lista** cuando está activa (los números de Mi lista son 1, 2, 3… propios; el número
+  global del canal se ve en la ficha).
+- **Las categorías** (Noticias, Deportes…) en modo Mi lista muestran solo los canales de la lista; las
+  categorías vacías se ocultan.
+- **Si un canal de Mi lista desaparece de la cartelera** (lo sacó el generador por caído): queda en la lista
+  **atenuado y con el aviso "No disponible ahora"**, no se borra solo; vuelve a andar si el canal regresa.
+- **Dónde se guarda:** primero en el aparato (`SharedPreferences`, clave `sandytv_milista`, guardando el `id`
+  del canal, por ejemplo `Telefe.ar`, no el número). **En la Fase 4**, opcional: sincronizar Mi lista entre los
+  televisores del hogar (tabla en Supabase), con la posibilidad de que cada televisor tenga la suya.
+- **Pantalla "Editar Mi lista"** (desde Ajustes): lista de todos los canales con buscador por nombre y
+  filtro por categoría y país, para tildar y destildar muchos de una vez.
+- **Tests:** agregar, quitar, reordenar, persistencia al reiniciar, canal que desaparece de la cartelera,
+  cambio de canal con CH+/CH− en cada modo.
 
 **Terminado cuando:** el dueño puede ver y ocultar el reloj, abrir la ficha y la grilla con el control, y
 elegir un canal desde la grilla.
