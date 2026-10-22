@@ -59,6 +59,7 @@
   - **Falta para cerrar la Fase 2:** que el dueño lo instale en el Noblex y confirme que cambia de canal con
     las flechas y CH+/CH−, que el volumen anda y que un canal caído no deja la pantalla negra. No se pudo
     probar el video real desde acá (no hay televisor ni emulador conectado).
+- **Instalación en el Noblex (2026-10-22):** por pendrive no se pudo: el televisor (visor y X-plore) no muestra los .apk y no deja renombrar un .jpg. Se publicó una **Release pública** `v0.1.0` (pre-release) con el APK para bajarlo con **Downloader**: https://github.com/sandy7222/sandytv/releases/download/v0.1.0/SandyTV.apk . Pendiente: confirmar si Downloader instala; si el Noblex bloquea todo, usar un aparato Android por HDMI.
 - **Pedido nuevo del dueño (2026-10-22):** "Mi lista" (cartelera de favoritos para no usar los ~940 canales),
   con agregar y quitar canales. Anotado como paso **3.5** del roadmap (reemplaza al antiguo "Favoritos").
 - **Pedido nuevo del dueño (2026-10-21):** al abrir la app se ve una **pantalla de inicio de SandyTV** (como la
