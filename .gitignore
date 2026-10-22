@@ -21,3 +21,6 @@ key.properties
 # Sistema
 .DS_Store
 Thumbs.db
+
+# Resultado generado de la cartelera
+cartelera/salida/

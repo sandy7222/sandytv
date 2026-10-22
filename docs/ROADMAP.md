@@ -176,12 +176,18 @@ anden. Por eso:
 }
 ```
 
-- El **número de canal** es estable: si un canal ya tenía número, lo conserva entre versiones
-  (guardar `numeros.json` en el repo para no reordenar los canales cada 6 horas).
-- **No inventar datos:** si iptv-org no trae emisora, ciudad o logo, el campo queda `null` y la app muestra
-  "Sin dato".
+- El **número de canal** es estable: si un canal ya tenía número, lo conserva entre versiones. **Como se
+  hizo (2026-10-21):** el mapa `numeros` viaja dentro del propio `cartelera.json` (incluye los canales que
+  desaparecieron, para no reutilizar su número) y el generador lo lee de la cartelera ya publicada. No hay
+  `numeros.json` en el repo ni commits del bot.
+- **No inventar datos:** si iptv-org no trae emisora o logo, el campo queda `null` y la app muestra
+  "Sin dato". **Ojo:** iptv-org **no trae la ciudad** del canal, solo el país; por eso el campo `ciudad`
+  no existe en la cartelera y la ficha (Fase 3) muestra solo el país.
 
-**1.6 Programación (EPG).** Investigar el proyecto `iptv-org/epg` y otras guías XMLTV gratuitas para canales
+**1.6 Programación (EPG).** *(Hallazgo del 2026-10-21: iptv-org **no publica las guías ya armadas**: solo
+el programa para bajarlas, `iptv-org/epg`, que hay que correr uno mismo y es pesado. Además, de los 181
+canales argentinos con enlace, solo ~33 tienen una guía asignada en `guides.json`. Se deja para después
+de que la cartelera funcione.)* Investigar el proyecto `iptv-org/epg` y otras guías XMLTV gratuitas para canales
 argentinos. Generar `epg.json` con las **próximas 24 h** de los canales que tengan datos. Si un canal no tiene
 programación, **no se inventa**: la grilla muestra solo el nombre del canal. Anotar en `ESTADO.md` qué
 porcentaje de canales quedó con programación.

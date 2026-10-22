@@ -1,0 +1,78 @@
+name: Cartelera
+
+# Arma la cartelera de canales cada 6 horas y la publica en GitHub Pages.
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'cartelera/**'
+      - '.github/workflows/cartelera.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: cartelera
+  cancel-in-progress: false
+
+jobs:
+  armar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Tests
+        working-directory: cartelera
+        run: npm test
+
+      - name: Armar cartelera
+        id: armar
+        working-directory: cartelera
+        # El programa sale con código 2 si la protección frena la publicación; no es un error del trabajo.
+        run: |
+          set +e
+          node armar_cartelera.mjs
+          codigo=$?
+          if [ "$codigo" -ne 0 ] && [ "$codigo" -ne 2 ]; then exit "$codigo"; fi
+          if [ -f salida/cartelera.json ]; then echo "publicar=si" >> "$GITHUB_OUTPUT"; else echo "publicar=no" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Informe del día
+        if: always()
+        run: |
+          if [ -f cartelera/salida/informe.json ]; then
+            echo '### Informe de la cartelera' >> "$GITHUB_STEP_SUMMARY"
+            node -e "const i=require('./cartelera/salida/informe.json');console.log('- Canales aceptados: '+i.aceptados+' de '+i.candidatos+'\n- Descartados: '+i.descartados.length+'\n- Forzados: '+i.forzados.length+'\n- Se publica: '+(i.publicar?'sí':'no ('+i.motivoNoPublicar+')'))" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Preparar página
+        if: steps.armar.outputs.publicar == 'si'
+        run: |
+          mkdir -p pagina
+          cp cartelera/salida/cartelera.json pagina/cartelera.json
+          cp cartelera/salida/informe.json pagina/informe.json
+
+      - uses: actions/configure-pages@v5
+        if: steps.armar.outputs.publicar == 'si'
+
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.armar.outputs.publicar == 'si'
+        with:
+          path: pagina
+
+      - name: Publicar en GitHub Pages
+        id: deploy
+        if: steps.armar.outputs.publicar == 'si'
+        uses: actions/deploy-pages@v4

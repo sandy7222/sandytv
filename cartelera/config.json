@@ -1,0 +1,33 @@
+{
+  "paises": ["AR", "UY", "CL", "PY", "BO", "PE", "CO", "VE", "EC", "MX", "CR", "PA", "GT", "SV", "HN", "NI", "DO", "CU", "PR"],
+  "paisesExcluidos": ["ES"],
+  "idioma": "spa",
+  "categoriasExcluidas": ["xxx", "shop"],
+  "etiquetasExcluidas": ["Not 24/7"],
+  "calidad": {
+    "minAlto": 480,
+    "maxAlto": 1080,
+    "maxMsRespuesta": 8000,
+    "minRatio": 1.5
+  },
+  "prueba": {
+    "concurrencia": 16,
+    "timeoutMs": 8000,
+    "maxEnlacesPorCanalAProbar": 6,
+    "maxEnlacesPorCanal": 3
+  },
+  "grupos": [
+    { "id": "argentina", "nombre": "Argentina (aire)" },
+    { "id": "noticias", "nombre": "Noticias" },
+    { "id": "deportes", "nombre": "Deportes" },
+    { "id": "cine", "nombre": "Cine y series" },
+    { "id": "documentales", "nombre": "Documentales" },
+    { "id": "infantiles", "nombre": "Infantiles" },
+    { "id": "musica", "nombre": "Música" },
+    { "id": "latinoamerica", "nombre": "Latinoamérica" },
+    { "id": "otros", "nombre": "Otros" }
+  ],
+  "proteccionMinimo": 0.5,
+  "urlPublicada": "https://sandy7222.github.io/sandytv/cartelera.json",
+  "api": "https://iptv-org.github.io/api"
+}

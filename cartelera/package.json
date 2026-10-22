@@ -1,0 +1,12 @@
+{
+  "name": "sandytv-cartelera",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Arma la cartelera de canales de SandyTV a partir de iptv-org",
+  "scripts": {
+    "test": "node --test \"test/**/*.test.mjs\"",
+    "armar": "node armar_cartelera.mjs"
+  },
+  "engines": { "node": ">=20" }
+}
