@@ -27,7 +27,8 @@
   .datos, .tecla { background:var(--sup); border-radius:10px; padding:12px 16px; margin-top:12px; font-size:15px; line-height:1.5; }
   .tecla { font-size:20px; color:var(--acento); }
   ul { list-style:none; margin:0; padding:0; }
-  li { display:flex; justify-content:space-between; gap:12px; padding:7px 12px; border-radius:8px; border:3px solid transparent; font-size:16px; }
+  li { display:flex; justify-content:space-between; gap:12px; padding:7px 12px; border-radius:8px; border:3px solid transparent; font-size:16px; cursor:pointer; }
+  li:hover { background:var(--sup); }
   li.foco { border-color:var(--acento); background:var(--sup); }
   li .res { color:var(--suave); white-space:nowrap; }
   li .res.ok { color:var(--ok); } li .res.mal { color:var(--mal); }
@@ -36,7 +37,7 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
 </head>
 <body>
-<header><div class="logo">Sandy<b>TV</b></div><div class="chico">Prueba del navegador · ↑ ↓ para elegir · OK para probar</div></header>
+<header><div class="logo">Sandy<b>TV</b></div><div class="chico">Prueba del navegador · llevá el puntero a un canal y apretá OK</div></header>
 <main>
   <section>
     <video id="video" muted playsinline></video>
@@ -72,6 +73,12 @@
       var n = document.createElement('span'); n.textContent = it.nombre;
       var r = document.createElement('span'); r.className = 'res' + (it.estado ? ' ' + it.estado : ''); r.textContent = it.res || (it.url ? (it.url.indexOf('https') === 0 ? 'https' : 'http') : '');
       li.appendChild(n); li.appendChild(r); lista.appendChild(li);
+      // El navegador del Philips usa el control como mouse: OK hace clic donde está el puntero.
+      li.addEventListener('click', function () {
+        mostrarEvento('clic en "' + it.nombre + '"');
+        foco = i; dibujar();
+        if (i === 0) probarTodos(); else probar(i);
+      });
     });
     var f = lista.children[foco]; if (f && f.scrollIntoView) f.scrollIntoView({ block: 'nearest' });
   }
@@ -130,8 +137,19 @@
     })();
   }
 
+  function mostrarEvento(texto) { document.getElementById('tecla').textContent = texto; }
+
+  // Para saber cómo llega el control remoto: como teclas, como mouse o como toques.
+  ['keyup', 'keypress'].forEach(function (tipo) {
+    document.addEventListener(tipo, function (e) { mostrarEvento(tipo + ': ' + (e.key || '?') + ' · keyCode ' + e.keyCode); });
+  });
+  document.addEventListener('mousemove', function (e) {
+    var t = document.getElementById('tecla');
+    if (t.textContent.indexOf('Tecla') !== 0 && t.textContent.indexOf('clic') !== 0) t.textContent = 'Mouse en ' + e.clientX + ', ' + e.clientY;
+  });
+
   document.addEventListener('keydown', function (e) {
-    document.getElementById('tecla').textContent = 'Tecla: ' + (e.key || '?') + ' · code: ' + (e.code || '?') + ' · keyCode: ' + e.keyCode;
+    mostrarEvento('Tecla: ' + (e.key || '?') + ' · code: ' + (e.code || '?') + ' · keyCode: ' + e.keyCode);
     var k = e.key, c = e.keyCode;
     if (k === 'ArrowDown' || c === 40) { foco = Math.min(items.length - 1, foco + 1); dibujar(); e.preventDefault(); }
     else if (k === 'ArrowUp' || c === 38) { foco = Math.max(0, foco - 1); dibujar(); e.preventDefault(); }
