@@ -57,7 +57,8 @@
 ## Datos pendientes del dueño
 
 - ~~Modelos~~ **Recibidos (2026-10-22, por foto de las etiquetas):** Philips **50PUD8100/77** (fabricado por FAPESA) y Noblex **DM50X7550**.
-  Pendiente confirmar el sistema en cada televisor: el Philips probablemente es **Titan OS** (sin APK) y el Noblex probablemente Android TV.
+  El dueño confirma (2026-10-22): Philips = Titan OS (como el 75PUD8100/77 de Frávega) y Noblex = Android (como el DR50X7550 de Megatone).
+  Consecuencia: el **Philips necesita un aparato Android por HDMI**; el Noblex acepta el APK. Pendiente: decidir qué aparato comprar para el Philips.
 - Qué controles remotos hay (marca/modelo) y si tienen teclas INFO, GUÍA y de colores.
 
 ## Problemas conocidos
