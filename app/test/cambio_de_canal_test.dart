@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sandytv/modelos/cartelera.dart';
+import 'package:sandytv/modelos/formato_imagen.dart';
 import 'package:sandytv/servicios/estado_app.dart';
 import 'package:sandytv/servicios/motor_video.dart';
 import 'package:sandytv/servicios/repositorio_cartelera.dart';
@@ -127,6 +128,62 @@ void main() {
     await t.pumpWidget(pantalla(estado, motor));
     await t.pump(const Duration(seconds: 1));
     expect(find.text('Este canal no está disponible ahora'), findsOneWidget);
+    await t.pump(const Duration(seconds: 6));
+  });
+
+  testWidgets('la barra es una franja de abajo y el logo va arriba a la derecha', (t) async {
+    final estado = await estadoCon3Canales();
+    final motor = MotorDePrueba({urlA: (Duration.zero, true)});
+    await t.pumpWidget(pantalla(estado, motor));
+    await t.pump(const Duration(milliseconds: 100));
+    final pantallaSize = t.getSize(find.byType(Scaffold));
+    final barra = t.getRect(find.byKey(const Key('barra_canal')));
+    expect(barra.height, lessThan(pantallaSize.height * 0.4), reason: 'una franja, no toda la pantalla');
+    expect(barra.bottom, closeTo(pantallaSize.height, 1), reason: 'pegada abajo');
+    final logo = t.getRect(find.byKey(const Key('logo_esquina')));
+    expect(logo.center.dx, greaterThan(pantallaSize.width * 0.6), reason: 'a la derecha');
+    expect(logo.center.dy, lessThan(pantallaSize.height * 0.3), reason: 'arriba');
+    await t.pump(const Duration(seconds: 6));
+    expect(find.byKey(const Key('barra_canal')), findsNothing, reason: 'se va sola a los segundos');
+    expect(find.byKey(const Key('logo_esquina')), findsNothing);
+  });
+
+  testWidgets('la tecla azul cambia el formato de la imagen y lo recuerda para ese canal', (t) async {
+    final estado = await estadoCon3Canales();
+    final motor = MotorDePrueba({urlA: (Duration.zero, true)});
+    await t.pumpWidget(pantalla(estado, motor));
+    await t.pump(const Duration(milliseconds: 100));
+    await t.sendKeyEvent(LogicalKeyboardKey.f4); // F4 = azul en el teclado de la PC (ver teclas.dart)
+    await t.pump();
+    expect(find.text('Formato: estirado 16:9'), findsOneWidget);
+    expect(estado.formatoDe('A.ar'), FormatoImagen.estirar);
+    await t.sendKeyEvent(LogicalKeyboardKey.f4);
+    await t.pump();
+    expect(find.text('Formato: zoom'), findsOneWidget);
+    await t.pump(const Duration(seconds: 6));
+  });
+
+  testWidgets('el 0 alterna con el canal anterior', (t) async {
+    final estado = await estadoCon3Canales();
+    final motor = MotorDePrueba({
+      urlA: (Duration.zero, true),
+      urlB: (Duration.zero, true),
+    });
+    await t.pumpWidget(pantalla(estado, motor));
+    await t.pump(const Duration(milliseconds: 100));
+    await t.sendKeyEvent(LogicalKeyboardKey.digit0);
+    await t.pump(const Duration(milliseconds: 100));
+    expect(find.text('Todavía no hay un canal anterior'), findsOneWidget);
+
+    await t.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await t.pump(const Duration(milliseconds: 200));
+    expect(find.text('2  B.ar'), findsOneWidget);
+    await t.sendKeyEvent(LogicalKeyboardKey.digit0);
+    await t.pump(const Duration(milliseconds: 200));
+    expect(find.text('1  A.ar'), findsOneWidget, reason: 'volvió al anterior');
+    await t.sendKeyEvent(LogicalKeyboardKey.digit0);
+    await t.pump(const Duration(milliseconds: 200));
+    expect(find.text('2  B.ar'), findsOneWidget, reason: 'y otra vez al otro');
     await t.pump(const Duration(seconds: 6));
   });
 

@@ -11,6 +11,7 @@ import '../logica/marcado_numerico.dart';
 import '../logica/navegacion.dart';
 import '../logica/teclas.dart';
 import '../modelos/cartelera.dart';
+import '../modelos/formato_imagen.dart';
 import '../servicios/estado_app.dart';
 import '../servicios/motor_video.dart';
 import 'pantalla_ajustes.dart';
@@ -59,6 +60,10 @@ class _PantallaCanalState extends State<PantallaCanal> {
   late final MarcadoNumerico _marcado;
   int _intento = 0;
   List<String> _errores = const [];
+
+  /// El canal que se veía antes del actual (para alternar entre dos canales).
+  Canal? _anterior;
+  FormatoImagen _formato = FormatoImagen.original;
 
   List<Canal> get _canales => widget.estado.cartelera?.canales ?? const [];
 
@@ -110,6 +115,8 @@ class _PantallaCanalState extends State<PantallaCanal> {
     if (r.ok) {
       widget.estado.recordarCanal(canal);
       setState(() {
+        if (_enAire != null && _enAire!.id != canal.id) _anterior = _enAire;
+        _formato = widget.estado.formatoDe(canal.id);
         _enAire = canal;
         _enlace = r.enlace;
         _errores = const [];
@@ -164,6 +171,38 @@ class _PantallaCanalState extends State<PantallaCanal> {
     });
   }
 
+  /// Vuelve al canal anterior; si se repite, vuelve al otro (sirve para alternar entre dos canales).
+  void _alternar() {
+    final anterior = _anterior;
+    if (anterior == null) {
+      _avisar('Todavía no hay un canal anterior');
+    } else {
+      _cambiar(anterior);
+    }
+  }
+
+  void _cambiarFormato() {
+    final canal = _enAire;
+    if (canal == null) return;
+    final nuevo = _formato.siguiente;
+    setState(() => _formato = nuevo);
+    widget.estado.guardarFormato(canal.id, nuevo);
+    _avisar('Formato: ${nuevo.nombre}');
+  }
+
+  Widget _video(VideoPlayerController c) {
+    final ratio = c.value.aspectRatio == 0 ? 16 / 9 : c.value.aspectRatio;
+    final original = Center(child: AspectRatio(aspectRatio: ratio, child: VideoPlayer(c)));
+    switch (_formato) {
+      case FormatoImagen.original:
+        return original;
+      case FormatoImagen.estirar:
+        return SizedBox.expand(child: VideoPlayer(c));
+      case FormatoImagen.zoom:
+        return ClipRect(child: Transform.scale(scale: 4 / 3, child: original));
+    }
+  }
+
   void _irAlNumero(int n) {
     final c = canalPorNumero(_canales, n);
     if (c == null) {
@@ -201,7 +240,16 @@ class _PantallaCanalState extends State<PantallaCanal> {
         if (!_barra) return KeyEventResult.ignored;
         _cambiar(canalAnterior(widget.estado.cartelera!.canalesDe(_objetivo.categoria), _objetivo.id));
       case Accion.digito:
-        _marcado.digito(t.digito!);
+        // El 0 solo (ningún canal empieza con 0) vuelve al canal anterior, sin esperar.
+        if (t.digito == 0 && _marcando.isEmpty) {
+          _alternar();
+        } else {
+          _marcado.digito(t.digito!);
+        }
+      case Accion.ultimoCanal:
+        _alternar();
+      case Accion.formato:
+        _cambiarFormato();
       case Accion.aceptar:
         _barra ? _ocultarBarra() : _mostrarBarra();
       case Accion.info:
@@ -237,10 +285,11 @@ class _PantallaCanalState extends State<PantallaCanal> {
               valueListenable: _motor.actual,
               builder: (_, c, _) {
                 if (c == null || !hayVideo) return const SizedBox.shrink();
-                return Center(child: AspectRatio(aspectRatio: c.value.aspectRatio == 0 ? 16 / 9 : c.value.aspectRatio, child: VideoPlayer(c)));
+                return _video(c);
               },
             ),
             if (!hayVideo) _PantallaEspera(canal: _objetivo, sinSenal: _estadoCanal == _Estado.sinSenal, detalle: _errores),
+            if (_barra && hayVideo) _LogoEsquina(canal: _objetivo),
             if (_barra && hayVideo) _BarraCanal(canal: _objetivo, enlace: _cambiando ? null : _enlace, sintonizando: _cambiando),
             if (_marcando.isNotEmpty) _NumeroMarcado(texto: _marcando),
             if (_aviso != null) _Aviso(texto: _aviso!),
@@ -307,17 +356,13 @@ class _BarraCanal extends StatelessWidget {
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(40, 40, 40, 28),
+        key: const Key('barra_canal'),
+        padding: const EdgeInsets.fromLTRB(40, 36, 40, 24),
         decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.transparent, Color(0xE6000000)])),
         child: Row(children: [
-          Container(
-            width: 120, height: 70,
-            decoration: BoxDecoration(color: Colores.superficie, borderRadius: BorderRadius.circular(10)),
-            child: LogoCanal(url: canal.logo, nombre: canal.nombre, alto: 56),
-          ),
-          const SizedBox(width: 20),
           Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            // mainAxisSize.min: la barra es solo una franja de abajo, no ocupa toda la pantalla.
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('${canal.numero}  ${canal.nombre}', maxLines: 1, overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: Colores.texto)),
               if (sintonizando)
@@ -327,6 +372,28 @@ class _BarraCanal extends StatelessWidget {
             ]),
           ),
         ]),
+      ),
+    );
+  }
+}
+
+/// Logo del canal arriba a la derecha: tapa por unos segundos el logo que ya trae la imagen
+/// (casi siempre está en esa esquina) y se va junto con la barra.
+class _LogoEsquina extends StatelessWidget {
+  const _LogoEsquina({required this.canal});
+  final Canal canal;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.topRight,
+      child: Container(
+        key: const Key('logo_esquina'),
+        width: 190,
+        height: 100,
+        margin: const EdgeInsets.fromLTRB(0, 24, 32, 0),
+        decoration: BoxDecoration(color: Colores.superficie, borderRadius: BorderRadius.circular(14)),
+        child: LogoCanal(url: canal.logo, nombre: canal.nombre, alto: 80),
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../logica/salud_enlaces.dart';
 import '../modelos/cartelera.dart';
+import '../modelos/formato_imagen.dart';
 import 'repositorio_cartelera.dart';
 
 class AlmacenPrefs implements Almacen {
@@ -72,6 +73,25 @@ class EstadoApp extends ChangeNotifier {
   }
 
   void recordarCanal(Canal c) => prefs.setString(claveUltimo, c.id);
+
+  static const claveFormatoDefecto = 'sandytv_formato_defecto';
+  static String _claveFormato(String canalId) => 'sandytv_formato_$canalId';
+
+  /// Formato que se usa en los canales que no tienen uno propio.
+  FormatoImagen get formatoDefecto => FormatoImagen.desdeCodigo(prefs.getString(claveFormatoDefecto)) ?? FormatoImagen.original;
+
+  /// El formato de un canal: el que se eligió para ese canal, o el de por defecto.
+  FormatoImagen formatoDe(String canalId) => FormatoImagen.desdeCodigo(prefs.getString(_claveFormato(canalId))) ?? formatoDefecto;
+
+  Future<void> guardarFormato(String canalId, FormatoImagen f) async {
+    await prefs.setString(_claveFormato(canalId), f.codigo);
+    notifyListeners();
+  }
+
+  Future<void> cambiarFormatoDefecto(FormatoImagen f) async {
+    await prefs.setString(claveFormatoDefecto, f.codigo);
+    notifyListeners();
+  }
 
   Future<void> guardarSalud() => prefs.setString(claveSalud, salud.comoTexto());
 

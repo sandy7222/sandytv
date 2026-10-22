@@ -35,6 +35,15 @@ void main() {
     expect(mapearTecla(LogicalKeyboardKey.numpad9).digito, 9);
   });
 
+  test('botón azul y tecla de zoom cambian el formato de la imagen', () {
+    expect(mapearTecla(LogicalKeyboardKey.colorF3Blue).accion, Accion.formato);
+    expect(mapearTecla(LogicalKeyboardKey.zoomToggle).accion, Accion.formato);
+  });
+
+  test('la tecla "último canal" alterna con el canal anterior', () {
+    expect(mapearTecla(LogicalKeyboardKey.mediaLast).accion, Accion.ultimoCanal);
+  });
+
   test('el volumen NO se intercepta (lo maneja el televisor)', () {
     expect(mapearTecla(LogicalKeyboardKey.audioVolumeUp).accion, Accion.ninguna);
     expect(mapearTecla(LogicalKeyboardKey.audioVolumeDown).accion, Accion.ninguna);

@@ -2,12 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../logica/teclas.dart';
+import '../modelos/formato_imagen.dart';
 import '../servicios/estado_app.dart';
 import 'tema.dart';
 
 class PantallaAjustes extends StatelessWidget {
   const PantallaAjustes({super.key, required this.estado});
   final EstadoApp estado;
+
+  static String _descripcion(FormatoImagen f) => switch (f) {
+        FormatoImagen.original => 'Original (respeta la proporción del canal)',
+        FormatoImagen.estirar => 'Estirado a pantalla completa 16:9',
+        FormatoImagen.zoom => 'Zoom (agranda y recorta arriba y abajo)',
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +34,11 @@ class PantallaAjustes extends StatelessWidget {
               subtitle: const Text('Si está apagado, SandyTV abre en el Inicio.'),
               value: estado.retomarAlAbrir,
               onChanged: estado.cambiarRetomar,
+            ),
+            ListTile(
+              title: const Text('Formato de imagen por defecto'),
+              subtitle: Text('${_descripcion(estado.formatoDefecto)}. Se cambia canal por canal con el botón azul del control.'),
+              onTap: () => estado.cambiarFormatoDefecto(estado.formatoDefecto.siguiente),
             ),
             ListTile(
               title: const Text('Buscar cartelera nueva ahora'),

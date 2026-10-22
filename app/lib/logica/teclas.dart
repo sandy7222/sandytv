@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 
-enum Accion { canalSiguiente, canalAnterior, izquierda, derecha, digito, aceptar, atras, info, guia, menu, ninguna }
+enum Accion { canalSiguiente, canalAnterior, izquierda, derecha, digito, aceptar, atras, info, guia, menu, formato, ultimoCanal, ninguna }
 
 class TeclaMapeada {
   const TeclaMapeada(this.accion, [this.digito]);
@@ -36,6 +36,11 @@ TeclaMapeada mapearTecla(LogicalKeyboardKey k) {
   }
   if (k == LogicalKeyboardKey.info || k == LogicalKeyboardKey.colorF0Red) return const TeclaMapeada(Accion.info);
   if (k == LogicalKeyboardKey.guide || k == LogicalKeyboardKey.colorF1Green) return const TeclaMapeada(Accion.guia);
+  // Formato de imagen: botón azul, tecla de zoom del control (F4 es el equivalente en el teclado de la PC).
+  if (k == LogicalKeyboardKey.colorF3Blue || k == LogicalKeyboardKey.zoomToggle || k == LogicalKeyboardKey.f4) {
+    return const TeclaMapeada(Accion.formato);
+  }
+  if (k == LogicalKeyboardKey.mediaLast) return const TeclaMapeada(Accion.ultimoCanal);
   if (k == LogicalKeyboardKey.contextMenu || k == LogicalKeyboardKey.settings || k == LogicalKeyboardKey.colorF2Yellow) {
     return const TeclaMapeada(Accion.menu);
   }
