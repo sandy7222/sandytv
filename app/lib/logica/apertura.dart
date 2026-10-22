@@ -46,6 +46,8 @@ Future<ResultadoApertura> abrirConReserva(
       salud.registrarExito(e.url);
       return ResultadoApertura(e);
     } catch (error) {
+      // Si se canceló porque el usuario cambió de canal, no es culpa del enlace.
+      if (cancelado?.call() ?? false) return ResultadoApertura(null, errores);
       salud.registrarFallo(e.url);
       errores.add('${_host(e.url)}: ${_motivo(error, timeout)}');
     }

@@ -20,21 +20,36 @@ enum _Estado { conectando, reproduciendo, sinSenal }
 
 /// Canal a pantalla completa. Todo lo que se ve (barra, errores, "conectando") es diseño de SandyTV.
 class PantallaCanal extends StatefulWidget {
-  const PantallaCanal({super.key, required this.estado, required this.canalInicial, this.timeoutApertura = const Duration(seconds: 10)});
+  const PantallaCanal({
+    super.key,
+    required this.estado,
+    required this.canalInicial,
+    this.timeoutApertura = const Duration(seconds: 10),
+    this.crearMotor,
+  });
   final EstadoApp estado;
   final Canal canalInicial;
 
   /// Cuánto se espera a que un enlace arranque antes de probar el de reserva.
   final Duration timeoutApertura;
 
+  /// Solo para pruebas: permite usar un motor de video falso.
+  final MotorPantalla Function()? crearMotor;
+
   @override
   State<PantallaCanal> createState() => _PantallaCanalState();
 }
 
 class _PantallaCanalState extends State<PantallaCanal> {
-  final _motor = MotorVideoReal();
-  late Canal _canal;
+  late final MotorPantalla _motor = widget.crearMotor?.call() ?? MotorVideoReal();
+
+  /// El canal que se eligió (de acá se sigue al apretar ↑ o ↓, ande o no ande).
+  late Canal _objetivo;
+
+  /// El canal que se está viendo ahora; null si todavía no arrancó ninguno.
+  Canal? _enAire;
   _Estado _estadoCanal = _Estado.conectando;
+  bool _cambiando = false;
   Enlace? _enlace;
   bool _barra = false;
   String _marcando = '';
@@ -50,14 +65,14 @@ class _PantallaCanalState extends State<PantallaCanal> {
   @override
   void initState() {
     super.initState();
-    _canal = widget.canalInicial;
+    _objetivo = widget.canalInicial;
     _marcado = MarcadoNumerico(
       alCambiar: (t) => setState(() => _marcando = t),
       alTerminar: _irAlNumero,
     );
     _motor.alError = _reintentarActual;
     _pantallaEncendida(true);
-    _abrir(_canal);
+    _abrir(_objetivo);
   }
 
   /// Mantiene la pantalla encendida mientras se mira un canal. Si el aparato no lo permite, no pasa nada.
@@ -77,37 +92,62 @@ class _PantallaCanalState extends State<PantallaCanal> {
     super.dispose();
   }
 
+  /// Cambia de canal sin cortes: el que se está viendo sigue hasta que el nuevo arranque.
   Future<void> _abrir(Canal canal) async {
     final mio = ++_intento;
+    _timerBarra?.cancel();
     setState(() {
-      _canal = canal;
-      _estadoCanal = _Estado.conectando;
-      _enlace = null;
+      _objetivo = canal;
+      _cambiando = true;
       _errores = const [];
+      _barra = true; // la barra avisa de inmediato a qué canal se está cambiando
+      if (_enAire == null) _estadoCanal = _Estado.conectando;
     });
-    widget.estado.recordarCanal(canal);
-    final r = await abrirConReserva(canal, _motor, widget.estado.salud, timeout: widget.timeoutApertura, cancelado: () => mio != _intento || !mounted);
+    final r = await abrirConReserva(canal, _motor, widget.estado.salud,
+        timeout: widget.timeoutApertura, cancelado: () => mio != _intento || !mounted);
     if (!mounted || mio != _intento) return;
     widget.estado.guardarSalud();
-    setState(() {
-      _enlace = r.enlace;
-      _errores = r.errores;
-      _estadoCanal = r.ok ? _Estado.reproduciendo : _Estado.sinSenal;
-    });
-    if (r.ok) _mostrarBarra();
+    if (r.ok) {
+      widget.estado.recordarCanal(canal);
+      setState(() {
+        _enAire = canal;
+        _enlace = r.enlace;
+        _errores = const [];
+        _cambiando = false;
+        _estadoCanal = _Estado.reproduciendo;
+      });
+      _mostrarBarra();
+    } else if (_enAire != null) {
+      // No se corta lo que se estaba mirando: se avisa abajo y se sigue.
+      setState(() {
+        _cambiando = false;
+        _barra = false;
+      });
+      _avisar('Canal ${canal.numero} no disponible');
+    } else {
+      setState(() {
+        _cambiando = false;
+        _errores = r.errores;
+        _estadoCanal = _Estado.sinSenal;
+      });
+    }
   }
 
   void _reintentarActual() {
     if (!mounted) return;
     if (_enlace != null) widget.estado.salud.registrarFallo(_enlace!.url);
-    _abrir(_canal);
+    setState(() {
+      _enAire = null;
+      _estadoCanal = _Estado.conectando;
+    });
+    _abrir(_objetivo);
   }
 
   void _mostrarBarra() {
     _timerBarra?.cancel();
     setState(() => _barra = true);
     _timerBarra = Timer(const Duration(seconds: 5), () {
-      if (mounted) setState(() => _barra = false);
+      if (mounted && !_cambiando) setState(() => _barra = false);
     });
   }
 
@@ -129,12 +169,12 @@ class _PantallaCanalState extends State<PantallaCanal> {
     if (c == null) {
       _avisar('No hay un canal $n');
     } else {
-      _abrir(c);
+      _cambiar(c);
     }
   }
 
   void _cambiar(Canal? c) {
-    if (c != null && c.id != _canal.id) _abrir(c);
+    if (c != null && c.id != _objetivo.id) _abrir(c);
   }
 
   void _atras() {
@@ -151,17 +191,15 @@ class _PantallaCanalState extends State<PantallaCanal> {
     final t = mapearTecla(e.logicalKey);
     switch (t.accion) {
       case Accion.canalSiguiente:
-        _cambiar(canalSiguiente(_canales, _canal.id));
+        _cambiar(canalSiguiente(_canales, _objetivo.id));
       case Accion.canalAnterior:
-        _cambiar(canalAnterior(_canales, _canal.id));
+        _cambiar(canalAnterior(_canales, _objetivo.id));
       case Accion.derecha:
         if (!_barra) return KeyEventResult.ignored;
-        _mostrarBarra();
-        _cambiar(canalSiguiente(widget.estado.cartelera!.canalesDe(_canal.categoria), _canal.id));
+        _cambiar(canalSiguiente(widget.estado.cartelera!.canalesDe(_objetivo.categoria), _objetivo.id));
       case Accion.izquierda:
         if (!_barra) return KeyEventResult.ignored;
-        _mostrarBarra();
-        _cambiar(canalAnterior(widget.estado.cartelera!.canalesDe(_canal.categoria), _canal.id));
+        _cambiar(canalAnterior(widget.estado.cartelera!.canalesDe(_objetivo.categoria), _objetivo.id));
       case Accion.digito:
         _marcado.digito(t.digito!);
       case Accion.aceptar:
@@ -183,6 +221,7 @@ class _PantallaCanalState extends State<PantallaCanal> {
 
   @override
   Widget build(BuildContext context) {
+    final hayVideo = _enAire != null;
     return PopScope(
       canPop: !_barra,
       onPopInvokedWithResult: (didPop, _) {
@@ -197,12 +236,12 @@ class _PantallaCanalState extends State<PantallaCanal> {
             ValueListenableBuilder<VideoPlayerController?>(
               valueListenable: _motor.actual,
               builder: (_, c, _) {
-                if (c == null || _estadoCanal != _Estado.reproduciendo) return const SizedBox.shrink();
+                if (c == null || !hayVideo) return const SizedBox.shrink();
                 return Center(child: AspectRatio(aspectRatio: c.value.aspectRatio == 0 ? 16 / 9 : c.value.aspectRatio, child: VideoPlayer(c)));
               },
             ),
-            if (_estadoCanal != _Estado.reproduciendo) _PantallaEspera(canal: _canal, sinSenal: _estadoCanal == _Estado.sinSenal, detalle: _errores),
-            if (_barra && _estadoCanal == _Estado.reproduciendo) _BarraCanal(canal: _canal, enlace: _enlace),
+            if (!hayVideo) _PantallaEspera(canal: _objetivo, sinSenal: _estadoCanal == _Estado.sinSenal, detalle: _errores),
+            if (_barra && hayVideo) _BarraCanal(canal: _objetivo, enlace: _cambiando ? null : _enlace, sintonizando: _cambiando),
             if (_marcando.isNotEmpty) _NumeroMarcado(texto: _marcando),
             if (_aviso != null) _Aviso(texto: _aviso!),
           ]),
@@ -253,10 +292,14 @@ class _PantallaEspera extends StatelessWidget {
   }
 }
 
+/// Barra de abajo: a qué canal se cambió (se ve por unos segundos sobre el video en vivo).
 class _BarraCanal extends StatelessWidget {
-  const _BarraCanal({required this.canal, required this.enlace});
+  const _BarraCanal({required this.canal, required this.enlace, this.sintonizando = false});
   final Canal canal;
   final Enlace? enlace;
+
+  /// Mientras el canal nuevo todavía está arrancando.
+  final bool sintonizando;
 
   @override
   Widget build(BuildContext context) {
@@ -277,7 +320,10 @@ class _BarraCanal extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('${canal.numero}  ${canal.nombre}', maxLines: 1, overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: Colores.texto)),
-              if (detalle.isNotEmpty) Text(detalle, style: const TextStyle(fontSize: 16, color: Colores.textoSuave)),
+              if (sintonizando)
+                const Text('Sintonizando…', style: TextStyle(fontSize: 16, color: Colores.acento))
+              else if (detalle.isNotEmpty)
+                Text(detalle, style: const TextStyle(fontSize: 16, color: Colores.textoSuave)),
             ]),
           ),
         ]),

@@ -60,7 +60,7 @@ void main() {
     await t.pump(const Duration(milliseconds: 500));
     expect(find.text('1 · Telefe.ar'), findsOneWidget);
     expect(find.text('▶  Ver ahora'), findsNothing, reason: 'se abrió la pantalla del canal');
-    expect(estado.ultimoCanalId, 'Telefe.ar');
+    expect(estado.ultimoCanalId, isNull, reason: 'solo se recuerda un canal que llegó a arrancar');
   });
 
   testWidgets('si el canal no anda avisa en vez de quedar en negro', (t) async {

@@ -24,6 +24,18 @@ class MotorFalso implements MotorVideo {
   }
 }
 
+class MotorCancelador implements MotorVideo {
+  MotorCancelador(this.alAbrir);
+  final void Function() alAbrir;
+  final intentos = <String>[];
+  @override
+  Future<void> abrir(Enlace e, {required Duration timeout}) async {
+    intentos.add(e.url);
+    alAbrir();
+    throw Exception('cancelado');
+  }
+}
+
 class MotorLento implements MotorVideo {
   @override
   Future<void> abrir(Enlace e, {required Duration timeout}) => throw TimeoutException('x', timeout);
@@ -111,6 +123,17 @@ void main() {
       final r = await abrirConReserva(canal('A', [enlace('http://lento.com/a.m3u8', 90)]), MotorLento(), SaludEnlaces(),
           timeout: const Duration(seconds: 3));
       expect(r.errores.single, 'lento.com: no arrancó en 3 s');
+    });
+
+    test('si se cancela mientras se prueba, no se anota como fallo del enlace', () async {
+      final salud = SaludEnlaces();
+      var cancelar = false;
+      final motor = MotorCancelador(() => cancelar = true);
+      final r = await abrirConReserva(canal('A', [enlace('u1', 90), enlace('u2', 80)]), motor, salud,
+          timeout: const Duration(seconds: 1), cancelado: () => cancelar);
+      expect(r.ok, isFalse);
+      expect(salud.fallosDe('u1'), 0);
+      expect(motor.intentos, ['u1'], reason: 'no sigue con el de reserva');
     });
 
     test('la próxima vez prueba primero el enlace que anduvo', () async {
