@@ -1,7 +1,7 @@
 {
   "_ayuda": "agregar: canales propios (id, nombre, pais, grupo, logo, web, emisora, enlaces). forzar: ids que se incluyen aunque fallen la prueba (por geobloqueo). excluir: ids que nunca se muestran. grupo: {id: grupo} para mover un canal de grupo.",
   "agregar": [],
-  "forzar": [],
+  "forzar": ["DeporTV.ar", "FoxSports.ar", "ESPNPremium.ar", "Pakapaka.ar"],
   "excluir": [],
   "grupo": {}
 }

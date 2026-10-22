@@ -38,8 +38,8 @@
   Latinoamérica 589). Comparado con la PC del dueño (892): en Argentina 112 vs 116 canales. **Solo pasan desde
   la PC** (probable geobloqueo): DeporTV, Fox Sports, ESPN Premium, Pakapaka, Telefe Salta, Canal 4 Jujuy,
   Metro TV y otros. **Solo desde GitHub** (probable intermitencia): El Nueve y algunos canales chicos.
-  **Decisión pendiente:** poner DeporTV, Fox Sports, ESPN Premium y Pakapaka en `forzar` de
-  `mis_canales.json` (se incluirían siempre, pero sin puntaje real de calidad).
+  **Decidido (2026-10-22):** DeporTV, Fox Sports, ESPN Premium y Pakapaka quedan en `forzar` de `mis_canales.json`
+  (se incluyen siempre; si fallan la prueba en GitHub salen sin puntaje de calidad). Pendiente: subirlo con `git push`.
 - Aviso de GitHub: las acciones usadas anuncian pasarse a Node 24; no rompe nada hoy, revisar versiones más
   adelante.
 - **Pedido nuevo del dueño (2026-10-21):** al abrir la app se ve una **pantalla de inicio de SandyTV** (como la
@@ -47,7 +47,7 @@
 
 ## Qué sigue
 
-1. Decidir con el dueño la lista `forzar` (ver arriba).
+1. `git push` del cambio de `forzar` (con OK) y revisar que esos 4 canales aparezcan en la cartelera publicada.
 2. Pedirle al dueño que abra algunos canales de la cartelera en VLC (criterio de "terminado" de la Fase 1).
 3. Fase 0, paso 4: modelo del Philips (pendiente del dueño).
 4. Después, Fase 2 (app).
