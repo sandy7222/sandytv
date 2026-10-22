@@ -31,13 +31,23 @@
 - **Pendiente de Fase 1:** 1.6 (programación/EPG, ver nota en el roadmap) y la confirmación del dueño de que
   30 canales se ven en VLC.
 
+- **Push, GitHub Pages y primer workflow hechos (2026-10-22, con OK del dueño):** Pages activado en modo
+  "GitHub Actions". El workflow corrió bien (3 min 44 s) y la cartelera quedó en
+  https://sandy7222.github.io/sandytv/cartelera.json (y `informe.json`). Resultado en GitHub: **940 canales de
+  1.301** (Argentina 72, noticias 64, deportes 25, cine 31, documentales 46, infantiles 13, música 100,
+  Latinoamérica 589). Comparado con la PC del dueño (892): en Argentina 112 vs 116 canales. **Solo pasan desde
+  la PC** (probable geobloqueo): DeporTV, Fox Sports, ESPN Premium, Pakapaka, Telefe Salta, Canal 4 Jujuy,
+  Metro TV y otros. **Solo desde GitHub** (probable intermitencia): El Nueve y algunos canales chicos.
+  **Decisión pendiente:** poner DeporTV, Fox Sports, ESPN Premium y Pakapaka en `forzar` de
+  `mis_canales.json` (se incluirían siempre, pero sin puntaje real de calidad).
+- Aviso de GitHub: las acciones usadas anuncian pasarse a Node 24; no rompe nada hoy, revisar versiones más
+  adelante.
 - **Pedido nuevo del dueño (2026-10-21):** al abrir la app se ve una **pantalla de inicio de SandyTV** (como la
   de Pluto TV), sin que se vea el reproductor hasta elegir un canal. Anotado como paso **2.3** del roadmap.
 
 ## Qué sigue
 
-1. Con OK del dueño: `git push` y activar GitHub Pages (Settings → Pages → "GitHub Actions"), correr el
-   workflow a mano y comparar su informe con el de la PC del dueño.
+1. Decidir con el dueño la lista `forzar` (ver arriba).
 2. Pedirle al dueño que abra algunos canales de la cartelera en VLC (criterio de "terminado" de la Fase 1).
 3. Fase 0, paso 4: modelo del Philips (pendiente del dueño).
 4. Después, Fase 2 (app).
