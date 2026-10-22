@@ -31,6 +31,9 @@
 - **Pendiente de Fase 1:** 1.6 (programación/EPG, ver nota en el roadmap) y la confirmación del dueño de que
   30 canales se ven en VLC.
 
+- **Pedido nuevo del dueño (2026-10-21):** al abrir la app se ve una **pantalla de inicio de SandyTV** (como la
+  de Pluto TV), sin que se vea el reproductor hasta elegir un canal. Anotado como paso **2.3** del roadmap.
+
 ## Qué sigue
 
 1. Con OK del dueño: `git push` y activar GitHub Pages (Settings → Pages → "GitHub Actions"), correr el

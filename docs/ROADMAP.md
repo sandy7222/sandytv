@@ -221,7 +221,25 @@ En `AndroidManifest.xml`:
 **2.2 Al abrir:** cargar la última cartelera guardada en el aparato (para arrancar rápido y sin internet de
 GitHub) y en segundo plano pedir la nueva.
 
-**2.3 Reproducción a pantalla completa** del último canal visto (o el 1 la primera vez).
+**2.3 Pantalla de inicio de SandyTV (pedido del dueño, 2026-10-21).** Al abrir la app **no aparece un
+reproductor ni video**: aparece la **cartelera de inicio de SandyTV**, al estilo de la pantalla de inicio de
+Pluto TV, y el reproductor recién arranca cuando se elige un canal.
+1. **Presentación (1,5 a 2 s):** logo de SandyTV sobre fondo propio mientras carga la cartelera guardada.
+2. **Inicio:** arriba un **destacado grande** (el canal que estás mirando seguido, o un canal de Argentina
+   según la hora), y debajo **filas horizontales por categoría** ("Argentina (aire)", "Noticias",
+   "Deportes", "Cine y series", etc.) con el **logo** de cada canal. Una fila **"Seguir viendo"** con el
+   último canal y otra de **"Favoritos"**. Se navega con las flechas y **OK** pone el canal.
+3. **El reproductor es invisible como marca:** se usa solo el motor de video, **sin controles nativos**, sin
+   pantalla negra con botones del sistema ni nombre del reproductor. Todo lo que se ve (barra de canal,
+   menús, errores, "cargando") es diseño de SandyTV. Mientras un canal conecta se muestra el logo del canal
+   sobre fondo de SandyTV, nunca un cuadro negro.
+4. **Volver al inicio:** ATRÁS desde el canal abre el Inicio (en vez de cerrar la app).
+5. **Opción en Ajustes:** "Al abrir: mostrar Inicio / retomar el último canal" (por defecto: Inicio).
+6. Los logos y colores de SandyTV (nombre, ícono, fondo) los define el dueño; hasta tenerlos, usar un
+   diseño provisorio simple y sin imitar marcas de terceros (nada del logo ni de los colores de Pluto TV).
+
+**2.3b Reproducción a pantalla completa** del canal elegido (por defecto, el último visto o el 1 la primera
+vez), con las teclas del punto siguiente.
 
 **2.4 Control remoto** (probar en el Noblex; los controles cambian según la marca):
 
