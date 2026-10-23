@@ -14,26 +14,34 @@
   - Elegís un canal y el video pasa a PANTALLA COMPLETA.
   - Cambio de canal con el botón CH del control (ChannelUp/ChannelDown), ↑ ↓, los números o los botones en pantalla.
   - El navegador del Philips usa el control como puntero (mouse): por eso todo se puede tocar con clic.
-  - Abajo a la izquierda se ve qué tecla llega, para saber qué manda cada control.
+  - Reloj con la hora de Argentina (UTC-3), corregida con la hora del servidor (encabezado Date de GitHub).
+  - Listas de favoritos con título; se guardan en el navegador (localStorage, clave sandytv_listas, mismo formato que la app).
+  - Abajo a la derecha se ve qué tecla llega, para saber qué manda cada control.
   Solo usa canales con dirección https (el navegador bloquea los http dentro de una página https).
 -->
 <style>
-  :root { --fondo:#0A0E1A; --sup:#141B2D; --acento:#22D3EE; --texto:#F1F5F9; --suave:#94A3B8; }
+  :root { --fondo:#0A0E1A; --sup:#141B2D; --acento:#22D3EE; --texto:#F1F5F9; --suave:#94A3B8; --mal:#F87171; }
   * { box-sizing: border-box; }
   html, body { margin:0; height:100%; background:var(--fondo); color:var(--texto); font-family: system-ui, Roboto, Arial, sans-serif; overflow:hidden; }
-  button { font: inherit; color: var(--texto); background: var(--sup); border: 3px solid transparent; border-radius: 12px; padding: 12px 18px; cursor: pointer; }
+  button, input { font: inherit; color: var(--texto); }
+  button { background: var(--sup); border: 3px solid transparent; border-radius: 12px; padding: 12px 18px; cursor: pointer; }
   button:hover, button.on { border-color: var(--acento); }
+  input { background:#0F1626; border:2px solid #334155; border-radius:10px; padding:8px 12px; font-size:16px; width:220px; }
 
   /* Pantalla de elegir canal */
-  #inicio { position:absolute; inset:0; display:flex; flex-direction:column; padding:24px 36px; }
+  #inicio { position:absolute; inset:0; display:flex; flex-direction:column; padding:20px 36px 14px; }
+  #cab { display:flex; align-items:center; justify-content:space-between; }
   .logo { font-size:34px; font-weight:800; } .logo b { background:var(--acento); color:var(--fondo); padding:0 9px; border-radius:7px; margin-left:5px; }
-  #cats { display:flex; flex-wrap:wrap; gap:10px; margin:16px 0 12px; }
-  #cats button { font-size:18px; padding:8px 16px; }
-  #lista { flex:1; overflow-y:auto; display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:12px; align-content:start; padding-right:8px; }
-  .canal { display:flex; align-items:center; gap:12px; text-align:left; padding:10px 14px; }
-  .canal img { width:64px; height:40px; object-fit:contain; background:#fff1; border-radius:6px; }
+  #listasBar, #cats { display:flex; flex-wrap:wrap; gap:10px; margin:12px 0 0; align-items:center; }
+  #listasBar button, #cats button { font-size:17px; padding:8px 14px; }
+  #listasBar .sep { color:var(--suave); font-size:14px; margin-left:10px; }
+  #lista { flex:1; overflow-y:auto; display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:12px; align-content:start; padding:14px 8px 0 0; }
+  .fila { display:flex; gap:6px; }
+  .canal { flex:1; display:flex; align-items:center; gap:12px; text-align:left; padding:10px 14px; min-width:0; }
+  .canal img { width:64px; height:40px; object-fit:contain; background:#fff1; border-radius:6px; flex:none; }
   .canal span { font-size:18px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .canal small { color:var(--suave); display:block; font-size:13px; }
+  .estrella { flex:none; font-size:24px; padding:8px 14px; color:var(--acento); }
   #pie { color:var(--suave); font-size:14px; padding-top:8px; }
 
   /* Reproductor a pantalla completa */
@@ -41,24 +49,32 @@
   #reproductor.activo { display:block; }
   video { position:absolute; inset:0; width:100vw; height:100vh; background:#000; object-fit:contain; }
   #barra { position:absolute; left:0; right:0; bottom:0; padding:36px 40px 28px 40px; background:linear-gradient(transparent, #000d); opacity:0; transition:opacity .25s; pointer-events:none; }
+  #barra.conReloj { padding-left:190px; }
   #barra.ver { opacity:1; }
   #barra .num { font-size:38px; font-weight:800; } #barra .det { color:var(--acento); font-size:18px; min-height:24px; }
   #logoEsq { position:absolute; top:24px; right:32px; width:190px; height:100px; background:var(--sup); border-radius:14px; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .25s; pointer-events:none; }
   #logoEsq.ver { opacity:1; } #logoEsq img { max-width:90%; max-height:90%; }
-  #controles { position:absolute; top:24px; left:28px; display:flex; gap:10px; opacity:0; transition:opacity .25s; }
+  #controles { position:absolute; top:24px; left:28px; display:flex; gap:10px; flex-wrap:wrap; max-width:60vw; opacity:0; transition:opacity .25s; }
   #controles.ver { opacity:1; }
-  #aviso { position:absolute; top:24px; left:50%; transform:translateX(-50%); background:#141B2Dee; padding:10px 22px; border-radius:24px; font-size:20px; display:none; }
+  #aviso { position:absolute; top:24px; left:50%; transform:translateX(-50%); background:#141B2Dee; padding:10px 22px; border-radius:24px; font-size:20px; display:none; z-index:3; }
   #numero { position:absolute; top:24px; right:240px; font-size:54px; font-weight:800; color:var(--acento); display:none; text-shadow:0 2px 8px #000; }
-  #tecla { position:fixed; left:12px; bottom:8px; font-size:12px; color:#fff9; background:#0008; padding:2px 8px; border-radius:6px; z-index:5; }
+
+  /* Reloj (abajo a la izquierda) y diagnóstico de teclas (abajo a la derecha) */
+  #reloj { position:fixed; left:24px; bottom:22px; font-size:30px; font-weight:700; background:#000a; padding:6px 16px; border-radius:12px; z-index:4; display:none; }
+  #tecla { position:fixed; right:12px; bottom:8px; font-size:12px; color:#fff9; background:#0008; padding:2px 8px; border-radius:6px; z-index:5; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
 </head>
 <body>
 <div id="inicio">
-  <div class="logo">Sandy<b>TV</b></div>
+  <div id="cab">
+    <div class="logo">Sandy<b>TV</b></div>
+    <button id="bReloj" type="button">🕒 Reloj: sí</button>
+  </div>
+  <div id="listasBar"></div>
   <div id="cats"></div>
   <div id="lista"><div>Cargando la cartelera…</div></div>
-  <div id="pie">Elegí un canal. Dentro del canal: botón CH del control, ↑ ↓ o los botones de arriba. Atrás vuelve a esta lista.</div>
+  <div id="pie">Tocá un canal para verlo. La ☆ lo agrega o quita de tu lista. Dentro del canal: botón CH, ↑ ↓ o los botones de arriba. Atrás vuelve acá.</div>
 </div>
 
 <div id="reproductor">
@@ -67,12 +83,15 @@
   <div id="controles">
     <button id="bAnt" type="button">▼ Canal anterior</button>
     <button id="bSig" type="button">▲ Canal siguiente</button>
+    <button id="bFav" type="button">☆ Favorito</button>
+    <button id="bRelojP" type="button">🕒</button>
     <button id="bLista" type="button">☰ Lista</button>
   </div>
   <div id="numero"></div>
   <div id="aviso"></div>
   <div id="barra"><div class="num" id="barraNum"></div><div class="det" id="barraDet"></div></div>
 </div>
+<div id="reloj"></div>
 <div id="tecla">Apretá una tecla del control</div>
 
 <script>
@@ -80,15 +99,150 @@
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
   var video = $('video');
-  var canales = [];      // solo los que tienen enlace https
+  var canales = [];        // solo los que tienen enlace https
   var categorias = [];
   var catActual = 'argentina';
-  var idx = -1;          // canal que se está viendo (posición en `canales`)
-  var hls = null;
-  var intento = 0;
+  var actual = null;       // canal que se está viendo
+  var hls = null, intento = 0;
   var timerBarra = null, timerAviso = null, timerNumero = null, marcando = '';
 
+  /* ---------- Guardado en el navegador (si no se puede, la página igual anda) ---------- */
+  var LS_LISTAS = 'sandytv_listas', LS_RELOJ = 'sandytv_reloj';
+  function leer(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } }
+  function guardar(k, v) { try { window.localStorage.setItem(k, v); } catch (e) {} }
+
   function esHttps(u) { return u && u.indexOf('https://') === 0; }
+
+  /* ---------- Reloj: hora de Argentina (UTC-3), corregida con la hora del servidor ---------- */
+  var desfase = 0, sincronizado = false;
+  function dos(n) { return (n < 10 ? '0' : '') + n; }
+  function horaArgentina() {
+    var d = new Date(Date.now() + desfase - 3 * 3600 * 1000);
+    return dos(d.getUTCHours()) + ':' + dos(d.getUTCMinutes());
+  }
+  function relojVisible() { return leer(LS_RELOJ) !== '0'; }
+  function pintarReloj() {
+    var r = $('reloj'), v = relojVisible();
+    r.style.display = v ? 'block' : 'none';
+    r.textContent = horaArgentina();
+    $('barra').className = $('barra').className.replace(' conReloj', '') + (v ? ' conReloj' : '');
+    var t = '🕒 Reloj: ' + (v ? 'sí' : 'no');
+    $('bReloj').textContent = t; $('bRelojP').textContent = v ? '🕒 Ocultar reloj' : '🕒 Mostrar reloj';
+  }
+  function alternarReloj() { guardar(LS_RELOJ, relojVisible() ? '0' : '1'); pintarReloj(); }
+  $('bReloj').onclick = alternarReloj;
+  $('bRelojP').onclick = alternarReloj;
+  setInterval(pintarReloj, 1000);
+
+  /* ---------- Listas de favoritos ---------- */
+  var datos = { fijada: null, listas: [] };
+  var activaId = null; // lista que se está viendo (null = todos los canales)
+  function cargarListas() {
+    try {
+      var j = JSON.parse(leer(LS_LISTAS));
+      if (j && j.listas && j.listas.length !== undefined) {
+        datos.listas = j.listas.filter(function (l) { return l && typeof l.id === 'string' && typeof l.titulo === 'string'; })
+          .map(function (l) { return { id: l.id, titulo: l.titulo, agrupar: !!l.agrupar, canales: (l.canales || []).filter(function (x) { return typeof x === 'string'; }) }; });
+        datos.fijada = typeof j.fijada === 'string' ? j.fijada : null;
+      }
+    } catch (e) {}
+    if (datos.fijada && !listaPorId(datos.fijada)) datos.fijada = null;
+  }
+  function guardarListas() { guardar(LS_LISTAS, JSON.stringify({ version: 1, fijada: datos.fijada, listas: datos.listas })); }
+  function listaPorId(id) { for (var i = 0; i < datos.listas.length; i++) if (datos.listas[i].id === id) return datos.listas[i]; return null; }
+  function activa() { return activaId ? listaPorId(activaId) : null; }
+  function destino() { return activa() || (datos.fijada && listaPorId(datos.fijada)) || datos.listas[0] || null; }
+  function canalPorId(id) { for (var i = 0; i < canales.length; i++) if (canales[i].id === id) return canales[i]; return null; }
+  function canalesDeLista(l) { var r = []; l.canales.forEach(function (id) { var c = canalPorId(id); if (c) r.push(c); }); return r; }
+  function canalesActivos() { var l = activa(); var c = l ? canalesDeLista(l) : []; return c.length ? c : canales; }
+  function usaLista() { var l = activa(); return !!(l && canalesDeLista(l).length); }
+  function numeroVisible(ch) {
+    if (!usaLista()) return ch.numero;
+    var i = canalesActivos().indexOf(ch); return i >= 0 ? i + 1 : ch.numero;
+  }
+  function idNuevo(titulo) {
+    var base = titulo.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'lista';
+    var id = base, n = 2; while (listaPorId(id)) id = base + '-' + (n++); return id;
+  }
+  function crearLista(titulo) {
+    var t = (titulo || '').replace(/^\s+|\s+$/g, '');
+    if (!t) t = datos.listas.length ? 'Lista ' + (datos.listas.length + 1) : 'Mi lista';
+    var l = { id: idNuevo(t), titulo: t, agrupar: false, canales: [] };
+    datos.listas.push(l); guardarListas(); return l;
+  }
+  function enLista(l, ch) { return !!l && l.canales.indexOf(ch.id) >= 0; }
+  function alternarEnLista(l, ch) {
+    if (!l) return;
+    var i = l.canales.indexOf(ch.id);
+    if (i >= 0) l.canales.splice(i, 1); else l.canales.push(ch.id);
+    guardarListas();
+  }
+  function listaInicial() {
+    var ar = canales.filter(function (c) { return c.categoria === 'argentina'; });
+    if (!ar.length) ar = canales.slice();
+    ar.sort(function (a, b) { return (b.enlaces[0].puntaje || 0) - (a.enlaces[0].puntaje || 0); });
+    var l = crearLista('Mi lista');
+    ar.slice(0, 15).forEach(function (c) { l.canales.push(c.id); });
+    guardarListas();
+  }
+
+  function btn(texto, on, fn, clase) {
+    var b = document.createElement('button'); b.type = 'button'; b.textContent = texto;
+    if (on) b.className = 'on'; if (clase) b.className += ' ' + clase;
+    b.onclick = fn; return b;
+  }
+  function dibujarListas() {
+    var barra = $('listasBar'); barra.innerHTML = '';
+    barra.appendChild(btn('Todos los canales', activaId === null, function () { activaId = null; refrescar(); }));
+    datos.listas.forEach(function (l) {
+      barra.appendChild(btn((l.id === datos.fijada ? '📌 ' : '') + l.titulo + ' (' + l.canales.length + ')', activaId === l.id, function () { activaId = l.id; refrescar(); }));
+    });
+    var nueva = document.createElement('input'); nueva.placeholder = 'Título de la lista nueva'; nueva.maxLength = 40;
+    barra.appendChild(nueva);
+    barra.appendChild(btn('＋ Nueva lista', false, function () { var l = crearLista(nueva.value); activaId = l.id; refrescar(); }));
+    var l = activa();
+    if (l) {
+      var sep = document.createElement('span'); sep.className = 'sep'; sep.textContent = 'Esta lista:'; barra.appendChild(sep);
+      var ren = document.createElement('input'); ren.value = l.titulo; ren.maxLength = 40; barra.appendChild(ren);
+      barra.appendChild(btn('Cambiar título', false, function () { var t = ren.value.replace(/^\s+|\s+$/g, ''); if (t) { l.titulo = t; guardarListas(); refrescar(); } }));
+      barra.appendChild(btn(datos.fijada === l.id ? '📌 Dejar de abrir con esta' : '📌 Abrir siempre con esta lista', datos.fijada === l.id, function () { datos.fijada = datos.fijada === l.id ? null : l.id; guardarListas(); refrescar(); }));
+      if (datos.listas.length > 1) barra.appendChild(btn('🗑 Borrar', false, function () {
+        if (!window.confirm('¿Borrar la lista "' + l.titulo + '"?')) return;
+        datos.listas.splice(datos.listas.indexOf(l), 1); if (datos.fijada === l.id) datos.fijada = null; activaId = null; guardarListas(); refrescar();
+      }));
+    }
+  }
+
+  /* ---------- Pantalla de elegir canal ---------- */
+  function refrescar() { dibujarListas(); dibujarCategorias(); dibujarLista(); }
+  function dibujarCategorias() {
+    var c = $('cats'); c.innerHTML = '';
+    if (activa()) return; // dentro de una lista no se muestran las categorías
+    categorias.forEach(function (g) {
+      if (!canales.some(function (x) { return x.categoria === g.id; })) return;
+      c.appendChild(btn(g.nombre, g.id === catActual, function () { catActual = g.id; refrescar(); }));
+    });
+  }
+  function dibujarLista() {
+    var cont = $('lista'); cont.innerHTML = '';
+    var l = activa();
+    var mostrar = l ? canalesDeLista(l) : canales.filter(function (ch) { return ch.categoria === catActual; });
+    if (l && !mostrar.length) { cont.textContent = 'Esta lista está vacía. Elegí "Todos los canales" y tocá la ☆ de los canales que quieras agregar.'; return; }
+    var dest = destino();
+    mostrar.forEach(function (ch) {
+      var fila = document.createElement('div'); fila.className = 'fila';
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'canal';
+      if (ch.logo) { var im = document.createElement('img'); im.src = ch.logo; im.alt = ''; im.onerror = function () { im.style.visibility = 'hidden'; }; b.appendChild(im); }
+      var t = document.createElement('span'); t.textContent = ch.nombre;
+      var s = document.createElement('small'); s.textContent = 'Canal ' + (l ? mostrar.indexOf(ch) + 1 : ch.numero); t.appendChild(s); b.appendChild(t);
+      b.onclick = function () { video.muted = false; pantallaCompleta(); reproducir(ch); };
+      var e = document.createElement('button'); e.type = 'button'; e.className = 'estrella';
+      e.textContent = enLista(dest, ch) ? '★' : '☆';
+      e.title = dest ? (enLista(dest, ch) ? 'Quitar de "' + dest.titulo + '"' : 'Agregar a "' + dest.titulo + '"') : '';
+      e.onclick = function () { alternarEnLista(dest, ch); refrescar(); };
+      fila.appendChild(b); fila.appendChild(e); cont.appendChild(fila);
+    });
+  }
 
   /* ---------- Pantalla completa ---------- */
   function pantallaCompleta() {
@@ -101,40 +255,13 @@
     try { if (f && (document.fullscreenElement || document.webkitFullscreenElement)) { var p = f.call(document); if (p && p.catch) p.catch(function () {}); } } catch (e) {}
   }
 
-  /* ---------- Lista de canales ---------- */
-  function dibujarCategorias() {
-    var c = $('cats'); c.innerHTML = '';
-    categorias.forEach(function (g) {
-      if (!canales.some(function (x) { return x.categoria === g.id; })) return;
-      var b = document.createElement('button'); b.type = 'button'; b.textContent = g.nombre;
-      if (g.id === catActual) b.className = 'on';
-      b.onclick = function () { catActual = g.id; dibujarCategorias(); dibujarLista(); };
-      c.appendChild(b);
-    });
-  }
-  function dibujarLista() {
-    var l = $('lista'); l.innerHTML = '';
-    canales.forEach(function (ch, i) {
-      if (ch.categoria !== catActual) return;
-      var b = document.createElement('button'); b.type = 'button'; b.className = 'canal';
-      if (ch.logo) { var im = document.createElement('img'); im.src = ch.logo; im.alt = ''; im.onerror = function () { im.style.visibility = 'hidden'; }; b.appendChild(im); }
-      var t = document.createElement('span'); t.textContent = ch.nombre;
-      var s = document.createElement('small'); s.textContent = 'Canal ' + ch.numero; t.appendChild(s); b.appendChild(t);
-      b.onclick = function () { video.muted = false; pantallaCompleta(); reproducir(i); };
-      l.appendChild(b);
-    });
-  }
-
   /* ---------- Reproducción ---------- */
-  function limpiar() {
-    if (hls) { hls.destroy(); hls = null; }
-    video.onplaying = null; video.onerror = null;
-  }
-  function abrirEnlace(url, alFallar) {
+  function limpiar() { if (hls) { hls.destroy(); hls = null; } video.onplaying = null; video.onerror = null; }
+  function abrirEnlace(url, alArrancar, alFallar) {
     limpiar();
     var nativo = video.canPlayType('application/vnd.apple.mpegurl') || video.canPlayType('application/x-mpegURL');
     var listo = false, timer;
-    function ok() { if (listo) return; listo = true; clearTimeout(timer); }
+    function ok() { if (listo) return; listo = true; clearTimeout(timer); alArrancar(); }
     function falla() { if (listo) return; listo = true; clearTimeout(timer); limpiar(); alFallar(); }
     function conHls() {
       if (!(window.Hls && Hls.isSupported())) return falla();
@@ -152,73 +279,79 @@
       timer = setTimeout(function () { if (!listo) { video.onerror = null; conHls(); } }, 10000);
     } else { conHls(); }
   }
-  function reproducir(i) {
-    if (i < 0 || i >= canales.length) return;
+  function reproducir(ch) {
+    if (!ch) return;
     var mio = ++intento;
-    var ch = canales[i];
     var enlaces = ch.enlaces.filter(function (e) { return esHttps(e.url); }).map(function (e) { return e.url; });
-    idx = i; catActual = ch.categoria;
+    actual = ch;
     $('inicio').style.display = 'none';
     $('reproductor').className = 'activo';
+    pintarFav();
     mostrarBarra(ch, 'Sintonizando…');
     var n = 0;
     (function siguiente() {
       if (mio !== intento) return;
       if (n >= enlaces.length) { avisar('Este canal no está disponible ahora'); mostrarBarra(ch, 'No disponible'); return; }
-      var url = enlaces[n++];
-      abrirEnlace(url, function () { if (mio === intento) siguiente(); });
-      // al arrancar, mostrar el detalle
-      video.onplaying = (function (prev) { return function () { if (prev) prev(); if (mio === intento) mostrarBarra(ch, ''); }; })(video.onplaying);
+      abrirEnlace(enlaces[n++], function () { if (mio === intento) mostrarBarra(ch, ''); }, function () { if (mio === intento) siguiente(); });
     })();
   }
   function cambiar(delta) {
-    if (!canales.length) return;
-    var i = idx < 0 ? 0 : (idx + delta + canales.length) % canales.length;
-    reproducir(i);
+    var lista = canalesActivos(); if (!lista.length) return;
+    var i = lista.indexOf(actual);
+    reproducir(lista[i < 0 ? 0 : (i + delta + lista.length) % lista.length]);
   }
   function irAlNumero(n) {
-    for (var i = 0; i < canales.length; i++) if (canales[i].numero === n) return reproducir(i);
+    var lista = canalesActivos();
+    if (usaLista()) { if (n >= 1 && n <= lista.length) return reproducir(lista[n - 1]); return avisar('No hay un canal ' + n); }
+    for (var i = 0; i < canales.length; i++) if (canales[i].numero === n) return reproducir(canales[i]);
     avisar('No hay un canal ' + n);
   }
 
   /* ---------- Barra, avisos y controles en pantalla ---------- */
+  function pintarFav() {
+    var d = destino();
+    $('bFav').textContent = !d ? '☆ Favorito' : (actual && enLista(d, actual) ? '★ En "' + d.titulo + '"' : '☆ Agregar a "' + d.titulo + '"');
+  }
   function mostrarBarra(ch, detalle) {
-    $('barraNum').textContent = ch.numero + '  ' + ch.nombre;
+    $('barraNum').textContent = numeroVisible(ch) + '  ' + ch.nombre;
     $('barraDet').textContent = detalle || (ch.emisora || '');
     $('logoImg').src = ch.logo || ''; $('logoImg').style.visibility = ch.logo ? 'visible' : 'hidden';
     ['barra', 'logoEsq', 'controles'].forEach(function (id) { $(id).className = $(id).className.replace(' ver', '') + ' ver'; });
-    clearTimeout(timerBarra);
-    timerBarra = setTimeout(ocultarBarra, 5000);
+    clearTimeout(timerBarra); timerBarra = setTimeout(ocultarBarra, 5000);
   }
   function ocultarBarra() { ['barra', 'logoEsq', 'controles'].forEach(function (id) { $(id).className = $(id).className.replace(' ver', ''); }); }
   function avisar(t) { var a = $('aviso'); a.textContent = t; a.style.display = 'block'; clearTimeout(timerAviso); timerAviso = setTimeout(function () { a.style.display = 'none'; }, 3000); }
   function volverALista() {
     intento++; limpiar(); video.pause(); video.removeAttribute('src');
     $('reproductor').className = ''; $('inicio').style.display = 'flex';
-    salirPantallaCompleta(); dibujarCategorias(); dibujarLista();
+    salirPantallaCompleta(); refrescar();
   }
   $('bAnt').onclick = function () { cambiar(-1); };
   $('bSig').onclick = function () { cambiar(1); };
   $('bLista').onclick = volverALista;
-  // con el puntero (mouse): al mover, aparecen los controles; un clic sobre el video los muestra
-  $('reproductor').addEventListener('mousemove', function () { if (idx >= 0) mostrarBarra(canales[idx], ''); });
-  $('reproductor').addEventListener('click', function (e) { if (e.target === video && idx >= 0) mostrarBarra(canales[idx], ''); });
+  $('bFav').onclick = function () {
+    var d = destino(); if (!d || !actual) return;
+    alternarEnLista(d, actual); pintarFav();
+    avisar(enLista(d, actual) ? 'Agregado a "' + d.titulo + '"' : 'Quitado de "' + d.titulo + '"');
+    mostrarBarra(actual, '');
+  };
+  $('reproductor').addEventListener('mousemove', function () { if (actual) mostrarBarra(actual, ''); });
+  $('reproductor').addEventListener('click', function (e) { if (e.target === video && actual) mostrarBarra(actual, ''); });
 
   /* ---------- Teclas ---------- */
-  function mostrarTecla(e, tipo) {
-    $('tecla').textContent = tipo + ': ' + (e.key || '?') + ' · ' + (e.code || '?') + ' · keyCode ' + e.keyCode;
-  }
+  function mostrarTecla(e, tipo) { $('tecla').textContent = tipo + ': ' + (e.key || '?') + ' · ' + (e.code || '?') + ' · keyCode ' + e.keyCode; }
   document.addEventListener('keyup', function (e) { mostrarTecla(e, 'keyup'); });
   document.addEventListener('keydown', function (e) {
     mostrarTecla(e, 'keydown');
+    var tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT') return; // escribiendo un título: no tocar las teclas
     var k = e.key, c = e.keyCode;
-    var jugando = $('reproductor').className === 'activo';
-    if (!jugando) return; // en la lista, el navegador maneja el foco con el puntero
+    if ($('reproductor').className !== 'activo') return; // en la lista, el navegador maneja el foco con el puntero
     var parar = true;
     if (k === 'ChannelUp' || c === 427 || c === 33 || k === 'ArrowUp' || c === 38) cambiar(1);
     else if (k === 'ChannelDown' || c === 428 || c === 34 || k === 'ArrowDown' || c === 40) cambiar(-1);
     else if (k === 'Escape' || k === 'GoBack' || k === 'BrowserBack' || c === 27 || c === 8 || c === 461 || c === 10009 || c === 166) volverALista();
-    else if (k === 'Enter' || c === 13) mostrarBarra(canales[idx], '');
+    else if (k === 'Enter' || c === 13) mostrarBarra(actual, '');
     else if ((k >= '0' && k <= '9' && k.length === 1) || (c >= 96 && c <= 105)) {
       var d = k.length === 1 ? k : String(c - 96);
       marcando += d; var num = $('numero'); num.textContent = marcando; num.style.display = 'block';
@@ -229,15 +362,27 @@
   });
 
   /* ---------- Cartelera ---------- */
-  fetch('../cartelera.json').then(function (r) { return r.json(); }).then(function (c) {
+  pintarReloj();
+  fetch('../cartelera.json').then(function (r) {
+    // La respuesta de GitHub trae su hora exacta: sirve para corregir el reloj del televisor.
+    var f = r.headers.get('date'); var t = f ? Date.parse(f) : NaN;
+    if (!isNaN(t)) { desfase = t - Date.now(); sincronizado = true; pintarReloj(); }
+    return r.json();
+  }).then(function (c) {
     categorias = c.categorias || [];
     canales = (c.canales || []).filter(function (x) { return x.enlaces && x.enlaces.some(function (e) { return esHttps(e.url); }); });
     if (!canales.some(function (x) { return x.categoria === catActual; }) && canales.length) catActual = canales[0].categoria;
-    dibujarCategorias(); dibujarLista();
+    cargarListas();
+    if (!datos.listas.length && canales.length) listaInicial(); // la primera vez: "Mi lista" con propuesta corta
+    activaId = datos.fijada; // con una lista fijada, abre directo en esa lista
+    refrescar();
   }).catch(function (e) { $('lista').textContent = 'No pude cargar la cartelera: ' + e; });
 
   // Para pruebas desde la consola
-  window.sandytv = { cambiar: cambiar, reproducir: reproducir, volverALista: volverALista, estado: function () { return { idx: idx, canal: idx >= 0 ? canales[idx].nombre : null, activo: $('reproductor').className }; } };
+  window.sandytv = {
+    cambiar: cambiar, reproducir: reproducir, volverALista: volverALista, hora: horaArgentina, sincronizado: function () { return sincronizado; },
+    estado: function () { return { canal: actual ? actual.nombre : null, numero: actual ? numeroVisible(actual) : null, activo: $('reproductor').className, lista: activaId, fijada: datos.fijada, listas: datos.listas.map(function (l) { return l.titulo + ':' + l.canales.length; }) }; }
+  };
 })();
 </script>
 </body>
