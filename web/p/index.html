@@ -26,6 +26,9 @@
   video { width:100%; aspect-ratio:16/9; background:#000; border-radius:10px; }
   .datos, .tecla { background:var(--sup); border-radius:10px; padding:12px 16px; margin-top:12px; font-size:15px; line-height:1.5; }
   .tecla { font-size:20px; color:var(--acento); }
+  .botones { display:flex; gap:10px; margin-top:12px; }
+  button { flex:1; background:var(--sup); color:var(--texto); border:3px solid transparent; border-radius:10px; padding:14px 8px; font-size:17px; cursor:pointer; }
+  button:hover { border-color:var(--acento); }
   ul { list-style:none; margin:0; padding:0; }
   li { display:flex; justify-content:space-between; gap:12px; padding:7px 12px; border-radius:8px; border:3px solid transparent; font-size:16px; cursor:pointer; }
   li:hover { background:var(--sup); }
@@ -40,7 +43,12 @@
 <header><div class="logo">Sandy<b>TV</b></div><div class="chico">Prueba del navegador · llevá el puntero a un canal y apretá OK</div></header>
 <main>
   <section>
-    <video id="video" muted playsinline></video>
+    <video id="video" playsinline></video>
+    <div class="botones">
+      <button id="btn-ant" type="button">▼ Canal anterior</button>
+      <button id="btn-sig" type="button">▲ Canal siguiente</button>
+      <button id="btn-sonido" type="button">🔊 Sonido: sí</button>
+    </div>
     <div class="tecla" id="tecla">Apretá una tecla del control</div>
     <div class="datos" id="datos">Revisando el navegador…</div>
   </section>
@@ -75,6 +83,7 @@
       li.appendChild(n); li.appendChild(r); lista.appendChild(li);
       // El navegador del Philips usa el control como mouse: OK hace clic donde está el puntero.
       li.addEventListener('click', function () {
+        video.muted = false;
         mostrarEvento('clic en "' + it.nombre + '"');
         foco = i; dibujar();
         if (i === 0) probarTodos(); else probar(i);
@@ -139,6 +148,26 @@
 
   function mostrarEvento(texto) { document.getElementById('tecla').textContent = texto; }
 
+  // Sonido activado desde el primer clic (el navegador lo permite después de un gesto del usuario).
+  video.muted = false;
+  video.volume = 1;
+  var btnSonido = document.getElementById('btn-sonido');
+  btnSonido.addEventListener('click', function () {
+    video.muted = !video.muted;
+    btnSonido.textContent = video.muted ? '🔇 Sonido: no' : '🔊 Sonido: sí';
+  });
+
+  // Pasar al canal siguiente o anterior (sin contar la fila "Probar todos").
+  function cambiar(delta) {
+    if (items.length < 2) return;
+    var i = foco + delta;
+    if (i < 1) i = items.length - 1;
+    if (i >= items.length) i = 1;
+    foco = i; dibujar(); probar(i);
+  }
+  document.getElementById('btn-sig').addEventListener('click', function () { video.muted = false; cambiar(1); });
+  document.getElementById('btn-ant').addEventListener('click', function () { video.muted = false; cambiar(-1); });
+
   // Para saber cómo llega el control remoto: como teclas, como mouse o como toques.
   ['keyup', 'keypress'].forEach(function (tipo) {
     document.addEventListener(tipo, function (e) { mostrarEvento(tipo + ': ' + (e.key || '?') + ' · keyCode ' + e.keyCode); });
@@ -151,6 +180,9 @@
   document.addEventListener('keydown', function (e) {
     mostrarEvento('Tecla: ' + (e.key || '?') + ' · code: ' + (e.code || '?') + ' · keyCode: ' + e.keyCode);
     var k = e.key, c = e.keyCode;
+    // Teclas de canal de los televisores (ChannelUp/Down = 427/428) y PageUp/PageDown.
+    if (k === 'ChannelUp' || c === 427 || c === 33) { e.preventDefault(); cambiar(1); return; }
+    if (k === 'ChannelDown' || c === 428 || c === 34) { e.preventDefault(); cambiar(-1); return; }
     if (k === 'ArrowDown' || c === 40) { foco = Math.min(items.length - 1, foco + 1); dibujar(); e.preventDefault(); }
     else if (k === 'ArrowUp' || c === 38) { foco = Math.max(0, foco - 1); dibujar(); e.preventDefault(); }
     else if (k === 'Enter' || c === 13) { e.preventDefault(); if (foco === 0) probarTodos(); else probar(foco); }
