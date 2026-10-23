@@ -14,6 +14,7 @@ import '../modelos/cartelera.dart';
 import '../modelos/formato_imagen.dart';
 import '../servicios/estado_app.dart';
 import '../servicios/motor_video.dart';
+import 'dialogos.dart';
 import 'pantalla_ajustes.dart';
 import 'tema.dart';
 
@@ -65,7 +66,8 @@ class _PantallaCanalState extends State<PantallaCanal> {
   Canal? _anterior;
   FormatoImagen _formato = FormatoImagen.original;
 
-  List<Canal> get _canales => widget.estado.cartelera?.canales ?? const [];
+  /// Los canales entre los que se cambia: los de la lista activa, o todos.
+  List<Canal> get _canales => widget.estado.canalesActivos;
 
   @override
   void initState() {
@@ -171,6 +173,9 @@ class _PantallaCanalState extends State<PantallaCanal> {
     });
   }
 
+  /// ← y → con la barra visible: los canales de la misma categoría, dentro de la lista activa si hay una.
+  List<Canal> _canalesDeLaCategoria() => _canales.where((c) => c.categoria == _objetivo.categoria).toList();
+
   /// Vuelve al canal anterior; si se repite, vuelve al otro (sirve para alternar entre dos canales).
   void _alternar() {
     final anterior = _anterior;
@@ -204,7 +209,7 @@ class _PantallaCanalState extends State<PantallaCanal> {
   }
 
   void _irAlNumero(int n) {
-    final c = canalPorNumero(_canales, n);
+    final c = widget.estado.canalPorNumeroActivo(n);
     if (c == null) {
       _avisar('No hay un canal $n');
     } else {
@@ -235,10 +240,10 @@ class _PantallaCanalState extends State<PantallaCanal> {
         _cambiar(canalAnterior(_canales, _objetivo.id));
       case Accion.derecha:
         if (!_barra) return KeyEventResult.ignored;
-        _cambiar(canalSiguiente(widget.estado.cartelera!.canalesDe(_objetivo.categoria), _objetivo.id));
+        _cambiar(canalSiguiente(_canalesDeLaCategoria(), _objetivo.id));
       case Accion.izquierda:
         if (!_barra) return KeyEventResult.ignored;
-        _cambiar(canalAnterior(widget.estado.cartelera!.canalesDe(_objetivo.categoria), _objetivo.id));
+        _cambiar(canalAnterior(_canalesDeLaCategoria(), _objetivo.id));
       case Accion.digito:
         // El 0 solo (ningún canal empieza con 0) vuelve al canal anterior, sin esperar.
         if (t.digito == 0 && _marcando.isEmpty) {
@@ -250,6 +255,8 @@ class _PantallaCanalState extends State<PantallaCanal> {
         _alternar();
       case Accion.formato:
         _cambiarFormato();
+      case Accion.favorito:
+        dialogoFavorito(context, widget.estado, _enAire ?? _objetivo);
       case Accion.aceptar:
         _barra ? _ocultarBarra() : _mostrarBarra();
       case Accion.info:
@@ -288,9 +295,11 @@ class _PantallaCanalState extends State<PantallaCanal> {
                 return _video(c);
               },
             ),
-            if (!hayVideo) _PantallaEspera(canal: _objetivo, sinSenal: _estadoCanal == _Estado.sinSenal, detalle: _errores),
+            if (!hayVideo)
+              _PantallaEspera(canal: _objetivo, numero: widget.estado.numeroVisible(_objetivo), sinSenal: _estadoCanal == _Estado.sinSenal, detalle: _errores),
             if (_barra && hayVideo) _LogoEsquina(canal: _objetivo),
-            if (_barra && hayVideo) _BarraCanal(canal: _objetivo, enlace: _cambiando ? null : _enlace, sintonizando: _cambiando),
+            if (_barra && hayVideo)
+              _BarraCanal(canal: _objetivo, numero: widget.estado.numeroVisible(_objetivo), enlace: _cambiando ? null : _enlace, sintonizando: _cambiando),
             if (_marcando.isNotEmpty) _NumeroMarcado(texto: _marcando),
             if (_aviso != null) _Aviso(texto: _aviso!),
           ]),
@@ -301,8 +310,9 @@ class _PantallaCanalState extends State<PantallaCanal> {
 }
 
 class _PantallaEspera extends StatelessWidget {
-  const _PantallaEspera({required this.canal, required this.sinSenal, this.detalle = const []});
+  const _PantallaEspera({required this.canal, required this.numero, required this.sinSenal, this.detalle = const []});
   final Canal canal;
+  final int numero;
   final bool sinSenal;
 
   /// Por qué falló cada enlace (para saber si el problema es el canal o el reproductor).
@@ -318,7 +328,7 @@ class _PantallaEspera extends StatelessWidget {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             SizedBox(height: 120, child: LogoCanal(url: canal.logo, nombre: canal.nombre, alto: 110)),
             const SizedBox(height: 16),
-            Text('${canal.numero} · ${canal.nombre}', style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: Colores.texto)),
+            Text('$numero · ${canal.nombre}', style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: Colores.texto)),
             const SizedBox(height: 22),
             if (!sinSenal) ...[
               const SizedBox(width: 34, height: 34, child: CircularProgressIndicator(strokeWidth: 3, color: Colores.acento)),
@@ -343,8 +353,9 @@ class _PantallaEspera extends StatelessWidget {
 
 /// Barra de abajo: a qué canal se cambió (se ve por unos segundos sobre el video en vivo).
 class _BarraCanal extends StatelessWidget {
-  const _BarraCanal({required this.canal, required this.enlace, this.sintonizando = false});
+  const _BarraCanal({required this.canal, required this.numero, required this.enlace, this.sintonizando = false});
   final Canal canal;
+  final int numero;
   final Enlace? enlace;
 
   /// Mientras el canal nuevo todavía está arrancando.
@@ -363,7 +374,7 @@ class _BarraCanal extends StatelessWidget {
           Expanded(
             // mainAxisSize.min: la barra es solo una franja de abajo, no ocupa toda la pantalla.
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('${canal.numero}  ${canal.nombre}', maxLines: 1, overflow: TextOverflow.ellipsis,
+              Text('$numero  ${canal.nombre}', maxLines: 1, overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: Colores.texto)),
               if (sintonizando)
                 const Text('Sintonizando…', style: TextStyle(fontSize: 16, color: Colores.acento))

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../logica/teclas.dart';
 import '../modelos/formato_imagen.dart';
 import '../servicios/estado_app.dart';
+import 'pantalla_listas.dart';
 import 'tema.dart';
 
 class PantallaAjustes extends StatelessWidget {
@@ -34,6 +35,13 @@ class PantallaAjustes extends StatelessWidget {
               subtitle: const Text('Si está apagado, SandyTV abre en el Inicio.'),
               value: estado.retomarAlAbrir,
               onChanged: estado.cambiarRetomar,
+            ),
+            ListTile(
+              title: const Text('Listas de favoritos'),
+              subtitle: Text(estado.listas.fijada == null
+                  ? 'La app abre en todos los canales. Podés fijar una lista para que abra directo en ella.'
+                  : 'La app abre en la lista "${estado.listas.porId(estado.listas.fijada!)?.titulo}".'),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PantallaListas(estado: estado))),
             ),
             ListTile(
               title: const Text('Formato de imagen por defecto'),

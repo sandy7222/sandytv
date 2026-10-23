@@ -5,8 +5,11 @@ import 'tema.dart';
 
 /// Tarjeta de un canal en las filas del inicio. Se maneja con las flechas y OK.
 class TileCanal extends StatefulWidget {
-  const TileCanal({super.key, required this.canal, required this.alElegir, this.autofocus = false, this.atenuado = false});
+  const TileCanal({super.key, required this.canal, required this.alElegir, this.autofocus = false, this.atenuado = false, this.numero});
   final Canal canal;
+
+  /// Número a mostrar; si es null, el de la cartelera.
+  final int? numero;
   final VoidCallback alElegir;
   final bool autofocus;
   final bool atenuado;
@@ -49,7 +52,7 @@ class _TileCanalState extends State<TileCanal> {
                 const SizedBox(height: 8),
                 Text(c.nombre, maxLines: 1, overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colores.texto)),
-                Text('Canal ${c.numero}', style: const TextStyle(fontSize: 12, color: Colores.textoSuave)),
+                Text('Canal ${widget.numero ?? c.numero}', style: const TextStyle(fontSize: 12, color: Colores.textoSuave)),
               ]),
             ),
           ),

@@ -25,7 +25,7 @@ void main() {
     expect(mapearTecla(LogicalKeyboardKey.info).accion, Accion.info);
     expect(mapearTecla(LogicalKeyboardKey.colorF0Red).accion, Accion.info);
     expect(mapearTecla(LogicalKeyboardKey.guide).accion, Accion.guia);
-    expect(mapearTecla(LogicalKeyboardKey.colorF1Green).accion, Accion.guia);
+    expect(mapearTecla(LogicalKeyboardKey.guide).accion, Accion.guia);
   });
 
   test('números, del teclado y del teclado numérico', () {

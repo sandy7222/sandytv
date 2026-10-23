@@ -3,8 +3,10 @@ import 'package:flutter/services.dart';
 
 import '../modelos/cartelera.dart';
 import '../servicios/estado_app.dart';
+import 'dialogos.dart';
 import 'pantalla_ajustes.dart';
 import 'pantalla_canal.dart';
+import 'pantalla_listas.dart';
 import 'tema.dart';
 import 'tile_canal.dart';
 
@@ -45,26 +47,68 @@ class PantallaInicio extends StatelessWidget {
           builder: (context, _) {
             final cartelera = estado.cartelera;
             if (cartelera == null) return const Center(child: Text('Sin cartelera todavía.'));
-            final destacado = estado.ultimoCanal ?? _canalDestacado(cartelera);
-            final seguir = estado.ultimoCanal;
+            final lista = estado.listaActiva;
+            final canalesLista = lista == null ? const <Canal>[] : estado.listas.canalesDe(lista.id, cartelera);
+            final enLista = lista != null && canalesLista.isNotEmpty;
+            final ultimo = estado.ultimoCanal;
+            // En una lista, el destacado es el último canal visto si está en la lista, o el primero de la lista.
+            final destacado = enLista
+                ? (ultimo != null && canalesLista.any((c) => c.id == ultimo.id) ? ultimo : canalesLista.first)
+                : (ultimo ?? _canalDestacado(cartelera));
+            final faltan = lista == null ? 0 : lista.canales.length - canalesLista.length;
             return ListView(
               cacheExtent: 900,
               padding: const EdgeInsets.fromLTRB(40, 24, 40, 40),
               children: [
                 Row(children: [
                   const LogoSandyTv(tam: 30),
-                  const Spacer(),
-                  _BotonMenu(alElegir: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PantallaAjustes(estado: estado)))),
+                  const SizedBox(width: 24),
+                  // Wrap: si la pantalla es angosta, los botones pasan a otra línea en vez de cortarse.
+                  Expanded(
+                    child: Wrap(
+                      alignment: WrapAlignment.end,
+                      spacing: 12,
+                      runSpacing: 8,
+                      children: [
+                        _BotonMenu(
+                          texto: '▤  ${enLista ? lista.titulo : 'Todos los canales'}  ▾',
+                          alElegir: () => elegirListaActiva(context, estado),
+                        ),
+                        _BotonMenu(
+                          texto: '☰  Listas',
+                          alElegir: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PantallaListas(estado: estado))),
+                        ),
+                        _BotonMenu(
+                          texto: '⚙  Ajustes',
+                          alElegir: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PantallaAjustes(estado: estado))),
+                        ),
+                      ],
+                    ),
+                  ),
                 ]),
                 const SizedBox(height: 20),
                 if (destacado != null)
-                  _Destacado(canal: destacado, titulo: seguir != null ? 'Seguir viendo' : 'Para empezar', alElegir: () => _abrirCanal(context, destacado)),
-                for (final g in cartelera.gruposConCanales) _Fila(
-                  titulo: g.nombre,
-                  canales: _ordenadas(cartelera.canalesDe(g.id)),
-                  estado: estado,
-                  alElegir: (c) => _abrirCanal(context, c),
-                ),
+                  _Destacado(
+                    canal: destacado,
+                    titulo: ultimo != null && ultimo.id == destacado.id ? 'Seguir viendo' : 'Para empezar',
+                    alElegir: () => _abrirCanal(context, destacado),
+                  ),
+                if (enLista && lista.agrupar)
+                  for (final g in estado.listas.agruparPorCategoria(lista.id, cartelera))
+                    _Fila(titulo: g.grupo.nombre, canales: g.canales, estado: estado, alElegir: (c) => _abrirCanal(context, c))
+                else if (enLista)
+                  _Fila(titulo: lista.titulo, canales: canalesLista, estado: estado, alElegir: (c) => _abrirCanal(context, c))
+                else ...[
+                  if (lista != null) _AvisoListaVacia(titulo: lista.titulo),
+                  for (final g in cartelera.gruposConCanales)
+                    _Fila(titulo: g.nombre, canales: _ordenadas(cartelera.canalesDe(g.id)), estado: estado, alElegir: (c) => _abrirCanal(context, c), numerar: false),
+                ],
+                if (enLista && faltan > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8, left: 8),
+                    child: Text('$faltan ${faltan == 1 ? 'canal de esta lista ya no está' : 'canales de esta lista ya no están'} en la cartelera.',
+                        style: const TextStyle(fontSize: 14, color: Colores.textoSuave)),
+                  ),
               ],
             );
           },
@@ -87,12 +131,26 @@ class PantallaInicio extends StatelessWidget {
   }
 }
 
+class _AvisoListaVacia extends StatelessWidget {
+  const _AvisoListaVacia({required this.titulo});
+  final String titulo;
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(top: 16, left: 8),
+        child: Text('La lista "$titulo" está vacía o sus canales ya no están: se muestran todos los canales. Se arma en Listas.',
+            style: const TextStyle(fontSize: 15, color: Colores.textoSuave)),
+      );
+}
+
 class _Fila extends StatelessWidget {
-  const _Fila({required this.titulo, required this.canales, required this.estado, required this.alElegir});
+  const _Fila({required this.titulo, required this.canales, required this.estado, required this.alElegir, this.numerar = true});
   final String titulo;
   final List<Canal> canales;
   final EstadoApp estado;
   final void Function(Canal) alElegir;
+
+  /// Mostrar el número que corresponde a la lista activa (en "todos los canales" es el de la cartelera).
+  final bool numerar;
 
   @override
   Widget build(BuildContext context) {
@@ -108,6 +166,7 @@ class _Fila extends StatelessWidget {
           itemCount: canales.length,
           itemBuilder: (_, i) => TileCanal(
             canal: canales[i],
+            numero: numerar ? estado.numeroVisible(canales[i]) : null,
             alElegir: () => alElegir(canales[i]),
             atenuado: estado.salud.canalConFallas(canales[i]),
           ),
@@ -174,7 +233,8 @@ class _DestacadoState extends State<_Destacado> {
 }
 
 class _BotonMenu extends StatefulWidget {
-  const _BotonMenu({required this.alElegir});
+  const _BotonMenu({required this.texto, required this.alElegir});
+  final String texto;
   final VoidCallback alElegir;
   @override
   State<_BotonMenu> createState() => _BotonMenuState();
@@ -195,7 +255,10 @@ class _BotonMenuState extends State<_BotonMenu> {
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: _enfocado ? Colores.acento : Colores.textoSuave.withValues(alpha: 0.4), width: 2),
           ),
-          child: const Text('⚙  Ajustes', style: TextStyle(color: Colores.texto, fontSize: 15)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 300),
+            child: Text(widget.texto, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colores.texto, fontSize: 15)),
+          ),
         ),
       ),
     );

@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 
-enum Accion { canalSiguiente, canalAnterior, izquierda, derecha, digito, aceptar, atras, info, guia, menu, formato, ultimoCanal, ninguna }
+enum Accion { canalSiguiente, canalAnterior, izquierda, derecha, digito, aceptar, atras, info, guia, menu, formato, ultimoCanal, favorito, ninguna }
 
 class TeclaMapeada {
   const TeclaMapeada(this.accion, [this.digito]);
@@ -35,7 +35,9 @@ TeclaMapeada mapearTecla(LogicalKeyboardKey k) {
     return const TeclaMapeada(Accion.atras);
   }
   if (k == LogicalKeyboardKey.info || k == LogicalKeyboardKey.colorF0Red) return const TeclaMapeada(Accion.info);
-  if (k == LogicalKeyboardKey.guide || k == LogicalKeyboardKey.colorF1Green) return const TeclaMapeada(Accion.guia);
+  if (k == LogicalKeyboardKey.guide) return const TeclaMapeada(Accion.guia);
+  // Botón verde: agregar o quitar el canal de una lista de favoritos (F5 es el equivalente en la PC).
+  if (k == LogicalKeyboardKey.colorF1Green || k == LogicalKeyboardKey.f5) return const TeclaMapeada(Accion.favorito);
   // Formato de imagen: botón azul, tecla de zoom del control (F4 es el equivalente en el teclado de la PC).
   if (k == LogicalKeyboardKey.colorF3Blue || k == LogicalKeyboardKey.zoomToggle || k == LogicalKeyboardKey.f4) {
     return const TeclaMapeada(Accion.formato);
