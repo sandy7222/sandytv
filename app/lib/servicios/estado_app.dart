@@ -8,6 +8,7 @@ import '../logica/reloj.dart';
 import '../logica/salud_enlaces.dart';
 import '../modelos/cartelera.dart';
 import '../modelos/formato_imagen.dart';
+import '../modelos/peliculas.dart';
 import 'repositorio_cartelera.dart';
 
 class AlmacenPrefs implements Almacen {
@@ -21,8 +22,23 @@ class AlmacenPrefs implements Almacen {
 
 /// Lo que la app sabe en todo momento: la cartelera, la salud de los enlaces y las preferencias.
 class EstadoApp extends ChangeNotifier {
-  EstadoApp({required this.repo, required this.prefs, this.actualizacionAutomatica = true, RelojArgentino? reloj})
-      : reloj = reloj ?? RelojArgentino();
+  EstadoApp({
+    required this.repo,
+    required this.prefs,
+    this.actualizacionAutomatica = true,
+    RelojArgentino? reloj,
+    this.cargarPeliculas,
+    this.abrirVideo = _noAbre,
+  }) : reloj = reloj ?? RelojArgentino();
+
+  static Future<bool> _noAbre(String url) async => false;
+
+  /// Catálogo de películas (se lee de un archivo que viene dentro de la app).
+  final Future<String> Function()? cargarPeliculas;
+  CatalogoPeliculas? peliculas;
+
+  /// Abre una dirección con la app que corresponda (para las películas, la app oficial de YouTube).
+  final Future<bool> Function(String url) abrirVideo;
 
   /// Hora de Argentina, corregida con la hora de GitHub.
   final RelojArgentino reloj;
@@ -134,6 +150,13 @@ class EstadoApp extends ChangeNotifier {
       await prefs.setString(claveListas, listas.comoTexto());
     }
     listaActivaId = listas.fijada; // con una lista fijada, la app abre directo en esa lista
+    if (cargarPeliculas != null) {
+      try {
+        peliculas = CatalogoPeliculas.tryParse(await cargarPeliculas!());
+      } catch (_) {
+        peliculas = null; // sin catálogo, el botón de pelis no se muestra
+      }
+    }
     notifyListeners();
     unawaited(refrescar());
     _timer?.cancel();

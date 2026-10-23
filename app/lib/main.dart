@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'logica/reloj.dart';
 import 'servicios/estado_app.dart';
@@ -31,7 +32,22 @@ Future<void> main() async {
     },
     cargarInicial: () => rootBundle.loadString('assets/cartelera_inicial.json'),
   );
-  runApp(SandyTvApp(estado: EstadoApp(repo: repo, prefs: prefs, reloj: reloj)));
+  runApp(SandyTvApp(
+    estado: EstadoApp(
+      repo: repo,
+      prefs: prefs,
+      reloj: reloj,
+      cargarPeliculas: () => rootBundle.loadString('assets/peliculas_inicial.json'),
+      // Las películas se abren con la app oficial de YouTube del televisor (con sus propias publicidades).
+      abrirVideo: (url) async {
+        try {
+          return await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+        } catch (_) {
+          return false;
+        }
+      },
+    ),
+  ));
 }
 
 class SandyTvApp extends StatelessWidget {

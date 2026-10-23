@@ -7,6 +7,7 @@ import 'dialogos.dart';
 import 'pantalla_ajustes.dart';
 import 'pantalla_canal.dart';
 import 'pantalla_listas.dart';
+import 'pantalla_pelis.dart';
 import 'tema.dart';
 import 'tile_canal.dart';
 
@@ -74,6 +75,11 @@ class PantallaInicio extends StatelessWidget {
                           texto: '▤  ${enLista ? lista.titulo : 'Todos los canales'}  ▾',
                           alElegir: () => elegirListaActiva(context, estado),
                         ),
+                        if (estado.peliculas != null)
+                          _BotonMenu(
+                            texto: '🎬  Pelis',
+                            alElegir: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PantallaPelis(estado: estado))),
+                          ),
                         _BotonMenu(
                           texto: '☰  Listas',
                           alElegir: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PantallaListas(estado: estado))),

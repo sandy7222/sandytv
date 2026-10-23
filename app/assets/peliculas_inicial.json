@@ -1,0 +1,308 @@
+{
+  "formato": 1,
+  "version": "muestra",
+  "generos": [
+    {
+      "id": "accion",
+      "nombre": "Acción"
+    },
+    {
+      "id": "suspenso",
+      "nombre": "Suspenso"
+    },
+    {
+      "id": "terror",
+      "nombre": "Terror"
+    },
+    {
+      "id": "crimen",
+      "nombre": "Crimen"
+    },
+    {
+      "id": "drama",
+      "nombre": "Drama"
+    }
+  ],
+  "peliculas": [
+    {
+      "id": "_DJjlcxoBkY",
+      "titulo": "Punto de control",
+      "canal": "Adrenalina Pura TV",
+      "genero": "accion",
+      "portada": "https://i.ytimg.com/vi/_DJjlcxoBkY/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "WFks6AJLT-U",
+      "titulo": "Secretos inconfesables",
+      "canal": "Adrenalina Pura TV",
+      "genero": "suspenso",
+      "portada": "https://i.ytimg.com/vi/WFks6AJLT-U/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "X0N7U9Ywp8E",
+      "titulo": "Caged Animal con VING RHAMES",
+      "canal": "Adrenalina Pura TV",
+      "genero": "accion",
+      "portada": "https://i.ytimg.com/vi/X0N7U9Ywp8E/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "LwgfG06x69Q",
+      "titulo": "Pterodáctilo",
+      "canal": "Adrenalina Pura TV",
+      "genero": "accion",
+      "portada": "https://i.ytimg.com/vi/LwgfG06x69Q/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "x3FtT0sUkKI",
+      "titulo": "Bajo custodia con ABBIE CORNISH",
+      "canal": "Adrenalina Pura TV",
+      "genero": "suspenso",
+      "portada": "https://i.ytimg.com/vi/x3FtT0sUkKI/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "gagO0k1FCLw",
+      "titulo": "Lo que no te mata con MARK RUFFALO",
+      "canal": "Adrenalina Pura TV",
+      "genero": "crimen",
+      "portada": "https://i.ytimg.com/vi/gagO0k1FCLw/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "Nf6k3Dv6LJc",
+      "titulo": "Proscrito",
+      "canal": "Adrenalina Pura TV",
+      "genero": "accion",
+      "portada": "https://i.ytimg.com/vi/Nf6k3Dv6LJc/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "v6k3mPnynRI",
+      "titulo": "El devorador de huesos",
+      "canal": "Adrenalina Pura TV",
+      "genero": "terror",
+      "portada": "https://i.ytimg.com/vi/v6k3mPnynRI/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "7w6XxBk8B8Y",
+      "titulo": "Templario con PAUL GIAMATTI",
+      "canal": "Adrenalina Pura TV",
+      "genero": "accion",
+      "portada": "https://i.ytimg.com/vi/7w6XxBk8B8Y/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "V9JZDKDX6qI",
+      "titulo": "Autómata con ANTONIO BANDERAS",
+      "canal": "Adrenalina Pura TV",
+      "genero": "accion",
+      "portada": "https://i.ytimg.com/vi/V9JZDKDX6qI/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "CvrcxhLoCgs",
+      "titulo": "Lavalántula",
+      "canal": "Adrenalina Pura TV",
+      "genero": "accion",
+      "portada": "https://i.ytimg.com/vi/CvrcxhLoCgs/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "7_Zr6tXjzKM",
+      "titulo": "Engañadas",
+      "canal": "Adrenalina Pura TV",
+      "genero": "accion",
+      "portada": "https://i.ytimg.com/vi/7_Zr6tXjzKM/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "pU7yUXkvjSA",
+      "titulo": "Venganza",
+      "canal": "Adrenalina Pura TV",
+      "genero": "accion",
+      "portada": "https://i.ytimg.com/vi/pU7yUXkvjSA/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "JKZvaLMl6Uo",
+      "titulo": "El duelo con LAURENCE FISHBURN",
+      "canal": "Adrenalina Pura TV",
+      "genero": "accion",
+      "portada": "https://i.ytimg.com/vi/JKZvaLMl6Uo/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "KdEey3KvSpk",
+      "titulo": "El gran asalto con NICOLAS CAGE",
+      "canal": "Adrenalina Pura TV",
+      "genero": "accion",
+      "portada": "https://i.ytimg.com/vi/KdEey3KvSpk/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "ho-TUl_8-f4",
+      "titulo": "Ataque solar",
+      "canal": "Adrenalina Pura TV",
+      "genero": "accion",
+      "portada": "https://i.ytimg.com/vi/ho-TUl_8-f4/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "wsJ3eVMHfDg",
+      "titulo": "Persiguiendo al asesino",
+      "canal": "Adrenalina Pura TV",
+      "genero": "suspenso",
+      "portada": "https://i.ytimg.com/vi/wsJ3eVMHfDg/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "4liJVUZgkog",
+      "titulo": "Fuera del camino",
+      "canal": "Adrenalina Pura TV",
+      "genero": "suspenso",
+      "portada": "https://i.ytimg.com/vi/4liJVUZgkog/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "7Wyh3y617NE",
+      "titulo": "Pánico en la nieve- Película completa en español",
+      "canal": "Adrenalina Pura TV",
+      "genero": "suspenso",
+      "portada": "https://i.ytimg.com/vi/7Wyh3y617NE/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "TFtSiZ8oblM",
+      "titulo": "Robo a la mafia con ANDY GARCIA",
+      "canal": "Adrenalina Pura TV",
+      "genero": "suspenso",
+      "portada": "https://i.ytimg.com/vi/TFtSiZ8oblM/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "clxgmxT7zjA",
+      "titulo": "Enemiga perfecta",
+      "canal": "Adrenalina Pura TV",
+      "genero": "suspenso",
+      "portada": "https://i.ytimg.com/vi/clxgmxT7zjA/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "acyvvA1uj4g",
+      "titulo": "Atrapada en el fondo del mar",
+      "canal": "Adrenalina Pura TV",
+      "genero": "suspenso",
+      "portada": "https://i.ytimg.com/vi/acyvvA1uj4g/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "QXoRaCSh1ss",
+      "titulo": "El corredor nocturno",
+      "canal": "Adrenalina Pura TV",
+      "genero": "suspenso",
+      "portada": "https://i.ytimg.com/vi/QXoRaCSh1ss/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "f2AwaOcndQw",
+      "titulo": "Crimen y deseo",
+      "canal": "Adrenalina Pura TV",
+      "genero": "suspenso",
+      "portada": "https://i.ytimg.com/vi/f2AwaOcndQw/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "FhosN85Cp08",
+      "titulo": "Solo la verdad",
+      "canal": "Adrenalina Pura TV",
+      "genero": "drama",
+      "portada": "https://i.ytimg.com/vi/FhosN85Cp08/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "LYmu3ZLKzHc",
+      "titulo": "Hijos del odio con LUCAS TILL",
+      "canal": "Adrenalina Pura TV",
+      "genero": "drama",
+      "portada": "https://i.ytimg.com/vi/LYmu3ZLKzHc/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "8ZR43LG8sh0",
+      "titulo": "El coronel no tiene quien le escriba",
+      "canal": "Adrenalina Pura TV",
+      "genero": "drama",
+      "portada": "https://i.ytimg.com/vi/8ZR43LG8sh0/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "M7NECBtQpj4",
+      "titulo": "Silencio en la nieve",
+      "canal": "Adrenalina Pura TV",
+      "genero": "suspenso",
+      "portada": "https://i.ytimg.com/vi/M7NECBtQpj4/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "WtfFgFY3dSE",
+      "titulo": "Tong que tai",
+      "canal": "Adrenalina Pura TV",
+      "genero": "accion",
+      "portada": "https://i.ytimg.com/vi/WtfFgFY3dSE/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "JPgGr-YtTTg",
+      "titulo": "Lukas",
+      "canal": "Adrenalina Pura TV",
+      "genero": "accion",
+      "portada": "https://i.ytimg.com/vi/JPgGr-YtTTg/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "zMDx7EP4cCA",
+      "titulo": "El fundamentalista reticente",
+      "canal": "Adrenalina Pura TV",
+      "genero": "suspenso",
+      "portada": "https://i.ytimg.com/vi/zMDx7EP4cCA/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "1xdK1jtsflc",
+      "titulo": "MEJOR PELICULA DE SUSPENSO con PAUL BETTANY",
+      "canal": "Adrenalina Pura TV",
+      "genero": "suspenso",
+      "portada": "https://i.ytimg.com/vi/1xdK1jtsflc/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "y4kmLt9XuxE",
+      "titulo": "MEJOR PELICULA DE ACCIÓN \"Inmortales\"",
+      "canal": "Adrenalina Pura TV",
+      "genero": "accion",
+      "portada": "https://i.ytimg.com/vi/y4kmLt9XuxE/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "U0rY868zYrg",
+      "titulo": "Lukas",
+      "canal": "Adrenalina Pura TV",
+      "genero": "accion",
+      "portada": "https://i.ytimg.com/vi/U0rY868zYrg/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "kd8QW0elozI",
+      "titulo": "El rapto del magnate cervecero | Película completa en españo | Película de Acción Adrenalina Pura TV",
+      "canal": "Adrenalina Pura TV",
+      "genero": "accion",
+      "portada": "https://i.ytimg.com/vi/kd8QW0elozI/mqdefault.jpg",
+      "duracionMin": null
+    }
+  ]
+}
