@@ -83,6 +83,7 @@
   <div id="controles">
     <button id="bAnt" type="button">▼ Canal anterior</button>
     <button id="bSig" type="button">▲ Canal siguiente</button>
+    <button id="bFormato" type="button">▭ Formato: original</button>
     <button id="bFav" type="button">☆ Favorito</button>
     <button id="bRelojP" type="button">🕒</button>
     <button id="bLista" type="button">☰ Lista</button>
@@ -244,6 +245,26 @@
     });
   }
 
+  /* ---------- Formato de imagen (original / estirado 16:9 / zoom), recordado por canal ---------- */
+  var FORMATOS = ['original', 'estirar', 'zoom'];
+  var NOMBRE_FORMATO = { original: 'original', estirar: 'estirado 16:9', zoom: 'zoom' };
+  var LS_FORMATO = 'sandytv_formato';
+  function formatosGuardados() { try { return JSON.parse(leer(LS_FORMATO)) || {}; } catch (e) { return {}; } }
+  function formatoDe(ch) { var f = formatosGuardados()[ch.id]; return FORMATOS.indexOf(f) >= 0 ? f : 'original'; }
+  function aplicarFormato(f) {
+    // original: respeta la proporción del canal; estirar: llena la pantalla; zoom: agranda un tercio y recorta arriba y abajo
+    video.style.objectFit = f === 'estirar' ? 'fill' : 'contain';
+    video.style.transform = f === 'zoom' ? 'scale(1.3333)' : 'none';
+    $('bFormato').textContent = '▭ Formato: ' + NOMBRE_FORMATO[f];
+  }
+  function cambiarFormato() {
+    if (!actual) return;
+    var nuevo = FORMATOS[(FORMATOS.indexOf(formatoDe(actual)) + 1) % FORMATOS.length];
+    var g = formatosGuardados(); g[actual.id] = nuevo; guardar(LS_FORMATO, JSON.stringify(g));
+    aplicarFormato(nuevo); avisar('Formato: ' + NOMBRE_FORMATO[nuevo]); mostrarBarra(actual, '');
+  }
+  $('bFormato').onclick = cambiarFormato;
+
   /* ---------- Pantalla completa ---------- */
   function pantallaCompleta() {
     var el = document.documentElement;
@@ -284,6 +305,7 @@
     var mio = ++intento;
     var enlaces = ch.enlaces.filter(function (e) { return esHttps(e.url); }).map(function (e) { return e.url; });
     actual = ch;
+    aplicarFormato(formatoDe(ch));
     $('inicio').style.display = 'none';
     $('reproductor').className = 'activo';
     pintarFav();
@@ -352,6 +374,8 @@
     else if (k === 'ChannelDown' || c === 428 || c === 34 || k === 'ArrowDown' || c === 40) cambiar(-1);
     else if (k === 'Escape' || k === 'GoBack' || k === 'BrowserBack' || c === 27 || c === 8 || c === 461 || c === 10009 || c === 166) volverALista();
     else if (k === 'Enter' || c === 13) mostrarBarra(actual, '');
+    // Formato de imagen: botón azul del control (keyCode 406 en los televisores), tecla de zoom o F4 en la PC
+    else if (k === 'ColorF3Blue' || k === 'ZoomToggle' || c === 406 || c === 115) cambiarFormato();
     else if ((k >= '0' && k <= '9' && k.length === 1) || (c >= 96 && c <= 105)) {
       var d = k.length === 1 ? k : String(c - 96);
       marcando += d; var num = $('numero'); num.textContent = marcando; num.style.display = 'block';
@@ -380,6 +404,7 @@
 
   // Para pruebas desde la consola
   window.sandytv = {
+    formato: function () { return { objectFit: video.style.objectFit, transform: video.style.transform, guardado: formatosGuardados() }; },
     cambiar: cambiar, reproducir: reproducir, volverALista: volverALista, hora: horaArgentina, sincronizado: function () { return sincronizado; },
     estado: function () { return { canal: actual ? actual.nombre : null, numero: actual ? numeroVisible(actual) : null, activo: $('reproductor').className, lista: activaId, fijada: datos.fijada, listas: datos.listas.map(function (l) { return l.titulo + ':' + l.canales.length; }) }; }
   };
