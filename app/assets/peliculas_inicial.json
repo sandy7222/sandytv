@@ -21,6 +21,10 @@
     {
       "id": "drama",
       "nombre": "Drama"
+    },
+    {
+      "id": "cinemateca-peliculas",
+      "nombre": "Cinemateca Películas"
     }
   ],
   "peliculas": [
@@ -298,10 +302,346 @@
     },
     {
       "id": "kd8QW0elozI",
-      "titulo": "El rapto del magnate cervecero | Película completa en españo | Película de Acción Adrenalina Pura TV",
+      "titulo": "El rapto del magnate cervecero",
       "canal": "Adrenalina Pura TV",
       "genero": "accion",
       "portada": "https://i.ytimg.com/vi/kd8QW0elozI/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "kT85x-U7GbY",
+      "titulo": "El Último Cazador de Brujas",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/kT85x-U7GbY/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "1gqbiMmIFR4",
+      "titulo": "Kickboxer: Contacto Sangriento 2",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/1gqbiMmIFR4/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "-lAERBHOS1M",
+      "titulo": "Hermanos",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/-lAERBHOS1M/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "aixPdtePmAQ",
+      "titulo": "El Reino de los Elfos",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/aixPdtePmAQ/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "PmheO8D01bk",
+      "titulo": "El Transportador 3",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/PmheO8D01bk/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "9WWoloINnvQ",
+      "titulo": "Terror en el Bosque",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/9WWoloINnvQ/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "mQHQzKxVWBM",
+      "titulo": "Muy Bien Acompañada",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/mQHQzKxVWBM/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "7a8GmEz3MCQ",
+      "titulo": "El Rey Mono 2",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/7a8GmEz3MCQ/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "mV24Pt6BkS0",
+      "titulo": "Rebelión Adolescente",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/mV24Pt6BkS0/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "aV53PlMtsog",
+      "titulo": "La Maldición de la Ouija",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/aV53PlMtsog/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "g6wdJWGbcDk",
+      "titulo": "Cuenta Regresiva",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/g6wdJWGbcDk/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "VA87w9OtiO4",
+      "titulo": "P!raña 2",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/VA87w9OtiO4/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "QNduxur2sOU",
+      "titulo": "Cabin Fever 2",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/QNduxur2sOU/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "0spwmEZcPp0",
+      "titulo": "El Dominador",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/0spwmEZcPp0/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "dJggPCwWh2c",
+      "titulo": "Loucura de Verano",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/dJggPCwWh2c/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "sVz3xadYS1c",
+      "titulo": "La Venganza de Cenicienta",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/sVz3xadYS1c/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "9hEMh48sX8Y",
+      "titulo": "Hércules en Nueva York",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/9hEMh48sX8Y/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "pGQRoO1pjd4",
+      "titulo": "Canguro Último Modelo",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/pGQRoO1pjd4/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "SpAR4iXY6ak",
+      "titulo": "El Despertar del Mal",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/SpAR4iXY6ak/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "hclaShG_RDY",
+      "titulo": "The Promotion",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/hclaShG_RDY/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "LlRrivo3iUc",
+      "titulo": "Persecución Implacable",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/LlRrivo3iUc/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "40IZiHRbazc",
+      "titulo": "¿Por qué me casé?",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/40IZiHRbazc/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "Fl_C3u7E4sw",
+      "titulo": "Alí",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/Fl_C3u7E4sw/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "o-fxhlfsLhM",
+      "titulo": "El Ejecutor",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/o-fxhlfsLhM/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "OYl7phdNt2I",
+      "titulo": "La Puerta",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/OYl7phdNt2I/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "DcGbTyiTYyg",
+      "titulo": "Ojos Fríos",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/DcGbTyiTYyg/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "gOnFxkuEKQU",
+      "titulo": "Cubo Cero",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/gOnFxkuEKQU/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "cTwJdMcajis",
+      "titulo": "El último desafío",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/cTwJdMcajis/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "Sojq1-kooz8",
+      "titulo": "Interrogatorio",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/Sojq1-kooz8/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "t6j4EwRWVA4",
+      "titulo": "Rescate Imposible",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/t6j4EwRWVA4/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "8hqxzEHtqs8",
+      "titulo": "Ecos Mortales 2",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/8hqxzEHtqs8/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "aIM0m6eTpgY",
+      "titulo": "Una Noche Violenta en New York",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/aIM0m6eTpgY/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "PnwF-kChO5E",
+      "titulo": "Frank y Jesse",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/PnwF-kChO5E/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "8xsv9nDOKiw",
+      "titulo": "Hospital Maldito",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/8xsv9nDOKiw/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "SnVItFvAOJY",
+      "titulo": "Atrapar a un Asesino",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/SnVItFvAOJY/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "kpWsHNMs_Tw",
+      "titulo": "El Encanto de la Sirena",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/kpWsHNMs_Tw/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "jA08nlllHdk",
+      "titulo": "Una Menos",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/jA08nlllHdk/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "PyHGgqnj_rY",
+      "titulo": "Corazones Apasionados",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/PyHGgqnj_rY/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "_h5K64SziyE",
+      "titulo": "¡Porque te Quiero!",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/_h5K64SziyE/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "eLakKFCD91M",
+      "titulo": "Boogeyman: El Nombre del Miedo",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/eLakKFCD91M/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "VYwaqH4sgRg",
+      "titulo": "Moisés",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/VYwaqH4sgRg/mqdefault.jpg",
+      "duracionMin": null
+    },
+    {
+      "id": "pew7n14C3LY",
+      "titulo": "▶️ PELÍCULA COMPLETA DE PLAN DE ESCAPE DOBLADA EN HD",
+      "canal": "Cinemateca Películas",
+      "genero": "cinemateca-peliculas",
+      "portada": "https://i.ytimg.com/vi/pew7n14C3LY/mqdefault.jpg",
       "duracionMin": null
     }
   ]
