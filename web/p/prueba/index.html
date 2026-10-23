@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SandyTV</title>
+<!-- Íconos: los usa el navegador del televisor al guardar el acceso directo. -->
+<link rel="icon" type="image/png" sizes="192x192" href="../../icono-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../../icono-180.png">
+<link rel="manifest" href="../../manifest.json">
+<meta name="theme-color" content="#0A0E1A">
+<!--
+  Página de PRUEBA para el navegador del Philips (Titan OS). Responde:
+  1) si el navegador reproduce los canales (de forma nativa o con hls.js),
+  2) qué teclas del control llegan a la página.
+  Se maneja con ↑ ↓ y OK. "Probar todos" recorre los canales solo y deja la tabla para sacarle una foto.
+-->
+<style>
+  :root { --fondo:#0A0E1A; --sup:#141B2D; --acento:#22D3EE; --texto:#F1F5F9; --suave:#94A3B8; --ok:#4ADE80; --mal:#F87171; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--fondo); color:var(--texto); font-family: system-ui, Roboto, Arial, sans-serif; font-size:18px; }
+  header { display:flex; align-items:center; gap:16px; padding:16px 28px; }
+  .logo b { background:var(--acento); color:var(--fondo); padding:0 8px; border-radius:6px; margin-left:4px; }
+  .logo { font-size:28px; font-weight:800; }
+  main { display:grid; grid-template-columns: 1fr 1.3fr; gap:20px; padding:0 28px 20px; }
+  video { width:100%; aspect-ratio:16/9; background:#000; border-radius:10px; }
+  .datos, .tecla { background:var(--sup); border-radius:10px; padding:12px 16px; margin-top:12px; font-size:15px; line-height:1.5; }
+  .tecla { font-size:20px; color:var(--acento); }
+  .botones { display:flex; gap:10px; margin-top:12px; }
+  button { flex:1; background:var(--sup); color:var(--texto); border:3px solid transparent; border-radius:10px; padding:14px 8px; font-size:17px; cursor:pointer; }
+  button:hover { border-color:var(--acento); }
+  ul { list-style:none; margin:0; padding:0; }
+  li { display:flex; justify-content:space-between; gap:12px; padding:7px 12px; border-radius:8px; border:3px solid transparent; font-size:16px; cursor:pointer; }
+  li:hover { background:var(--sup); }
+  li.foco { border-color:var(--acento); background:var(--sup); }
+  li .res { color:var(--suave); white-space:nowrap; }
+  li .res.ok { color:var(--ok); } li .res.mal { color:var(--mal); }
+  .chico { color:var(--suave); font-size:14px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
+</head>
+<body>
+<header><div class="logo">Sandy<b>TV</b></div><div class="chico">Prueba del navegador · llevá el puntero a un canal y apretá OK</div></header>
+<main>
+  <section>
+    <video id="video" playsinline></video>
+    <div class="botones">
+      <button id="btn-ant" type="button">▼ Canal anterior</button>
+      <button id="btn-sig" type="button">▲ Canal siguiente</button>
+      <button id="btn-sonido" type="button">🔊 Sonido: sí</button>
+    </div>
+    <div class="tecla" id="tecla">Apretá una tecla del control</div>
+    <div class="datos" id="datos">Revisando el navegador…</div>
+  </section>
+  <section><ul id="lista"><li>Cargando la cartelera…</li></ul></section>
+</main>
+<script>
+(function () {
+  var video = document.getElementById('video');
+  var lista = document.getElementById('lista');
+  var items = []; // { nombre, url, res }
+  var foco = 0;
+  var hls = null;
+  var autoIndice = -1;
+  var temporizador = null;
+
+  var nativo = video.canPlayType('application/vnd.apple.mpegurl') || video.canPlayType('application/x-mpegURL');
+  var mse = !!(window.MediaSource || window.ManagedMediaSource);
+  var hlsjs = !!(window.Hls && Hls.isSupported());
+  document.getElementById('datos').innerHTML =
+    'Página: <b>' + location.protocol.replace(':', '') + '</b><br>' +
+    'Video HLS nativo: <b>' + (nativo ? 'sí (' + nativo + ')' : 'no') + '</b><br>' +
+    'MediaSource: <b>' + (mse ? 'sí' : 'no') + '</b> · hls.js: <b>' + (hlsjs ? 'sí' : 'no') + '</b><br>' +
+    '<span class="chico">' + navigator.userAgent + '</span>';
+
+  function dibujar() {
+    lista.innerHTML = '';
+    items.forEach(function (it, i) {
+      var li = document.createElement('li');
+      if (i === foco) li.className = 'foco';
+      var n = document.createElement('span'); n.textContent = it.nombre;
+      var r = document.createElement('span'); r.className = 'res' + (it.estado ? ' ' + it.estado : ''); r.textContent = it.res || (it.url ? (it.url.indexOf('https') === 0 ? 'https' : 'http') : '');
+      li.appendChild(n); li.appendChild(r); lista.appendChild(li);
+      // El navegador del Philips usa el control como mouse: OK hace clic donde está el puntero.
+      li.addEventListener('click', function () {
+        video.muted = false;
+        mostrarEvento('clic en "' + it.nombre + '"');
+        foco = i; dibujar();
+        if (i === 0) probarTodos(); else probar(i);
+      });
+    });
+    var f = lista.children[foco]; if (f && f.scrollIntoView) f.scrollIntoView({ block: 'nearest' });
+  }
+
+  function marcar(it, estado, texto) { it.estado = estado; it.res = texto; dibujar(); }
+
+  function limpiar() {
+    clearTimeout(temporizador);
+    if (hls) { hls.destroy(); hls = null; }
+    video.removeAttribute('src'); video.load();
+  }
+
+  function probar(i, alTerminar) {
+    var it = items[i];
+    if (!it || !it.url) { if (alTerminar) alTerminar(); return; }
+    limpiar();
+    marcar(it, '', 'probando…');
+    var terminado = false;
+    function fin(ok, texto) {
+      if (terminado) return; terminado = true;
+      marcar(it, ok ? 'ok' : 'mal', texto);
+      if (alTerminar) setTimeout(alTerminar, ok ? 2500 : 300);
+    }
+    video.onplaying = null; video.onerror = null;
+
+    function conHlsJs() {
+      if (!hlsjs) return fin(false, '✖ no reproduce (sin hls.js)');
+      hls = new Hls({ manifestLoadingTimeOut: 8000 });
+      hls.on(Hls.Events.ERROR, function (_, d) {
+        if (d.fatal) fin(false, '✖ hls.js: ' + d.details + (d.response && d.response.code ? ' (' + d.response.code + ')' : ''));
+      });
+      video.onplaying = function () { fin(true, '✔ hls.js'); };
+      hls.loadSource(it.url);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, function () { video.play().catch(function () {}); });
+      temporizador = setTimeout(function () { fin(false, '✖ hls.js: no arrancó en 12 s'); }, 12000);
+    }
+
+    if (nativo) {
+      video.onplaying = function () { fin(true, '✔ nativo'); };
+      video.onerror = function () { clearTimeout(temporizador); conHlsJs(); };
+      video.src = it.url;
+      video.play().catch(function () {});
+      temporizador = setTimeout(function () { if (!terminado) { video.onerror = null; conHlsJs(); } }, 10000);
+    } else {
+      conHlsJs();
+    }
+  }
+
+  function probarTodos() {
+    autoIndice = 1;
+    (function siguiente() {
+      if (autoIndice >= items.length) { limpiar(); items[0].res = 'listo: sacale una foto a la lista'; dibujar(); return; }
+      foco = autoIndice; dibujar();
+      probar(autoIndice++, siguiente);
+    })();
+  }
+
+  function mostrarEvento(texto) { document.getElementById('tecla').textContent = texto; }
+
+  // Sonido activado desde el primer clic (el navegador lo permite después de un gesto del usuario).
+  video.muted = false;
+  video.volume = 1;
+  var btnSonido = document.getElementById('btn-sonido');
+  btnSonido.addEventListener('click', function () {
+    video.muted = !video.muted;
+    btnSonido.textContent = video.muted ? '🔇 Sonido: no' : '🔊 Sonido: sí';
+  });
+
+  // Pasar al canal siguiente o anterior (sin contar la fila "Probar todos").
+  function cambiar(delta) {
+    if (items.length < 2) return;
+    var i = foco + delta;
+    if (i < 1) i = items.length - 1;
+    if (i >= items.length) i = 1;
+    foco = i; dibujar(); probar(i);
+  }
+  document.getElementById('btn-sig').addEventListener('click', function () { video.muted = false; cambiar(1); });
+  document.getElementById('btn-ant').addEventListener('click', function () { video.muted = false; cambiar(-1); });
+
+  // Para saber cómo llega el control remoto: como teclas, como mouse o como toques.
+  ['keyup', 'keypress'].forEach(function (tipo) {
+    document.addEventListener(tipo, function (e) { mostrarEvento(tipo + ': ' + (e.key || '?') + ' · keyCode ' + e.keyCode); });
+  });
+  document.addEventListener('mousemove', function (e) {
+    var t = document.getElementById('tecla');
+    if (t.textContent.indexOf('Tecla') !== 0 && t.textContent.indexOf('clic') !== 0) t.textContent = 'Mouse en ' + e.clientX + ', ' + e.clientY;
+  });
+
+  document.addEventListener('keydown', function (e) {
+    mostrarEvento('Tecla: ' + (e.key || '?') + ' · code: ' + (e.code || '?') + ' · keyCode: ' + e.keyCode);
+    var k = e.key, c = e.keyCode;
+    // Teclas de canal de los televisores (ChannelUp/Down = 427/428) y PageUp/PageDown.
+    if (k === 'ChannelUp' || c === 427 || c === 33) { e.preventDefault(); cambiar(1); return; }
+    if (k === 'ChannelDown' || c === 428 || c === 34) { e.preventDefault(); cambiar(-1); return; }
+    if (k === 'ArrowDown' || c === 40) { foco = Math.min(items.length - 1, foco + 1); dibujar(); e.preventDefault(); }
+    else if (k === 'ArrowUp' || c === 38) { foco = Math.max(0, foco - 1); dibujar(); e.preventDefault(); }
+    else if (k === 'Enter' || c === 13) { e.preventDefault(); if (foco === 0) probarTodos(); else probar(foco); }
+  });
+
+  fetch("../../cartelera.json").then(function (r) { return r.json(); }).then(function (c) {
+    var elegir = function (cat, n) {
+      return c.canales.filter(function (x) { return x.categoria === cat; })
+        .sort(function (a, b) { return (b.enlaces[0].puntaje || 0) - (a.enlaces[0].puntaje || 0); })
+        .slice(0, n);
+    };
+    var canales = elegir('argentina', 10).concat(elegir('noticias', 5), elegir('deportes', 3));
+    items = [{ nombre: '▶ Probar todos (automático)', url: null, res: '' }].concat(canales.map(function (x) {
+      return { nombre: x.numero + ' · ' + x.nombre, url: x.enlaces[0].url };
+    }));
+    dibujar();
+  }).catch(function (e) {
+    lista.innerHTML = '<li>No pude cargar la cartelera: ' + e + '</li>';
+  });
+})();
+</script>
+</body>
+</html>

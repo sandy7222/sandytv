@@ -10,198 +10,234 @@
 <link rel="manifest" href="../manifest.json">
 <meta name="theme-color" content="#0A0E1A">
 <!--
-  Página de PRUEBA para el navegador del Philips (Titan OS). Responde:
-  1) si el navegador reproduce los canales (de forma nativa o con hls.js),
-  2) qué teclas del control llegan a la página.
-  Se maneja con ↑ ↓ y OK. "Probar todos" recorre los canales solo y deja la tabla para sacarle una foto.
+  SandyTV web (para el navegador del Philips / Titan OS).
+  - Elegís un canal y el video pasa a PANTALLA COMPLETA.
+  - Cambio de canal con el botón CH del control (ChannelUp/ChannelDown), ↑ ↓, los números o los botones en pantalla.
+  - El navegador del Philips usa el control como puntero (mouse): por eso todo se puede tocar con clic.
+  - Abajo a la izquierda se ve qué tecla llega, para saber qué manda cada control.
+  Solo usa canales con dirección https (el navegador bloquea los http dentro de una página https).
 -->
 <style>
-  :root { --fondo:#0A0E1A; --sup:#141B2D; --acento:#22D3EE; --texto:#F1F5F9; --suave:#94A3B8; --ok:#4ADE80; --mal:#F87171; }
+  :root { --fondo:#0A0E1A; --sup:#141B2D; --acento:#22D3EE; --texto:#F1F5F9; --suave:#94A3B8; }
   * { box-sizing: border-box; }
-  body { margin:0; background:var(--fondo); color:var(--texto); font-family: system-ui, Roboto, Arial, sans-serif; font-size:18px; }
-  header { display:flex; align-items:center; gap:16px; padding:16px 28px; }
-  .logo b { background:var(--acento); color:var(--fondo); padding:0 8px; border-radius:6px; margin-left:4px; }
-  .logo { font-size:28px; font-weight:800; }
-  main { display:grid; grid-template-columns: 1fr 1.3fr; gap:20px; padding:0 28px 20px; }
-  video { width:100%; aspect-ratio:16/9; background:#000; border-radius:10px; }
-  .datos, .tecla { background:var(--sup); border-radius:10px; padding:12px 16px; margin-top:12px; font-size:15px; line-height:1.5; }
-  .tecla { font-size:20px; color:var(--acento); }
-  .botones { display:flex; gap:10px; margin-top:12px; }
-  button { flex:1; background:var(--sup); color:var(--texto); border:3px solid transparent; border-radius:10px; padding:14px 8px; font-size:17px; cursor:pointer; }
-  button:hover { border-color:var(--acento); }
-  ul { list-style:none; margin:0; padding:0; }
-  li { display:flex; justify-content:space-between; gap:12px; padding:7px 12px; border-radius:8px; border:3px solid transparent; font-size:16px; cursor:pointer; }
-  li:hover { background:var(--sup); }
-  li.foco { border-color:var(--acento); background:var(--sup); }
-  li .res { color:var(--suave); white-space:nowrap; }
-  li .res.ok { color:var(--ok); } li .res.mal { color:var(--mal); }
-  .chico { color:var(--suave); font-size:14px; }
+  html, body { margin:0; height:100%; background:var(--fondo); color:var(--texto); font-family: system-ui, Roboto, Arial, sans-serif; overflow:hidden; }
+  button { font: inherit; color: var(--texto); background: var(--sup); border: 3px solid transparent; border-radius: 12px; padding: 12px 18px; cursor: pointer; }
+  button:hover, button.on { border-color: var(--acento); }
+
+  /* Pantalla de elegir canal */
+  #inicio { position:absolute; inset:0; display:flex; flex-direction:column; padding:24px 36px; }
+  .logo { font-size:34px; font-weight:800; } .logo b { background:var(--acento); color:var(--fondo); padding:0 9px; border-radius:7px; margin-left:5px; }
+  #cats { display:flex; flex-wrap:wrap; gap:10px; margin:16px 0 12px; }
+  #cats button { font-size:18px; padding:8px 16px; }
+  #lista { flex:1; overflow-y:auto; display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:12px; align-content:start; padding-right:8px; }
+  .canal { display:flex; align-items:center; gap:12px; text-align:left; padding:10px 14px; }
+  .canal img { width:64px; height:40px; object-fit:contain; background:#fff1; border-radius:6px; }
+  .canal span { font-size:18px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .canal small { color:var(--suave); display:block; font-size:13px; }
+  #pie { color:var(--suave); font-size:14px; padding-top:8px; }
+
+  /* Reproductor a pantalla completa */
+  #reproductor { position:fixed; inset:0; background:#000; display:none; }
+  #reproductor.activo { display:block; }
+  video { position:absolute; inset:0; width:100vw; height:100vh; background:#000; object-fit:contain; }
+  #barra { position:absolute; left:0; right:0; bottom:0; padding:36px 40px 28px 40px; background:linear-gradient(transparent, #000d); opacity:0; transition:opacity .25s; pointer-events:none; }
+  #barra.ver { opacity:1; }
+  #barra .num { font-size:38px; font-weight:800; } #barra .det { color:var(--acento); font-size:18px; min-height:24px; }
+  #logoEsq { position:absolute; top:24px; right:32px; width:190px; height:100px; background:var(--sup); border-radius:14px; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .25s; pointer-events:none; }
+  #logoEsq.ver { opacity:1; } #logoEsq img { max-width:90%; max-height:90%; }
+  #controles { position:absolute; top:24px; left:28px; display:flex; gap:10px; opacity:0; transition:opacity .25s; }
+  #controles.ver { opacity:1; }
+  #aviso { position:absolute; top:24px; left:50%; transform:translateX(-50%); background:#141B2Dee; padding:10px 22px; border-radius:24px; font-size:20px; display:none; }
+  #numero { position:absolute; top:24px; right:240px; font-size:54px; font-weight:800; color:var(--acento); display:none; text-shadow:0 2px 8px #000; }
+  #tecla { position:fixed; left:12px; bottom:8px; font-size:12px; color:#fff9; background:#0008; padding:2px 8px; border-radius:6px; z-index:5; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
 </head>
 <body>
-<header><div class="logo">Sandy<b>TV</b></div><div class="chico">Prueba del navegador · llevá el puntero a un canal y apretá OK</div></header>
-<main>
-  <section>
-    <video id="video" playsinline></video>
-    <div class="botones">
-      <button id="btn-ant" type="button">▼ Canal anterior</button>
-      <button id="btn-sig" type="button">▲ Canal siguiente</button>
-      <button id="btn-sonido" type="button">🔊 Sonido: sí</button>
-    </div>
-    <div class="tecla" id="tecla">Apretá una tecla del control</div>
-    <div class="datos" id="datos">Revisando el navegador…</div>
-  </section>
-  <section><ul id="lista"><li>Cargando la cartelera…</li></ul></section>
-</main>
+<div id="inicio">
+  <div class="logo">Sandy<b>TV</b></div>
+  <div id="cats"></div>
+  <div id="lista"><div>Cargando la cartelera…</div></div>
+  <div id="pie">Elegí un canal. Dentro del canal: botón CH del control, ↑ ↓ o los botones de arriba. Atrás vuelve a esta lista.</div>
+</div>
+
+<div id="reproductor">
+  <video id="video" playsinline></video>
+  <div id="logoEsq"><img id="logoImg" alt=""></div>
+  <div id="controles">
+    <button id="bAnt" type="button">▼ Canal anterior</button>
+    <button id="bSig" type="button">▲ Canal siguiente</button>
+    <button id="bLista" type="button">☰ Lista</button>
+  </div>
+  <div id="numero"></div>
+  <div id="aviso"></div>
+  <div id="barra"><div class="num" id="barraNum"></div><div class="det" id="barraDet"></div></div>
+</div>
+<div id="tecla">Apretá una tecla del control</div>
+
 <script>
 (function () {
-  var video = document.getElementById('video');
-  var lista = document.getElementById('lista');
-  var items = []; // { nombre, url, res }
-  var foco = 0;
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var video = $('video');
+  var canales = [];      // solo los que tienen enlace https
+  var categorias = [];
+  var catActual = 'argentina';
+  var idx = -1;          // canal que se está viendo (posición en `canales`)
   var hls = null;
-  var autoIndice = -1;
-  var temporizador = null;
+  var intento = 0;
+  var timerBarra = null, timerAviso = null, timerNumero = null, marcando = '';
 
-  var nativo = video.canPlayType('application/vnd.apple.mpegurl') || video.canPlayType('application/x-mpegURL');
-  var mse = !!(window.MediaSource || window.ManagedMediaSource);
-  var hlsjs = !!(window.Hls && Hls.isSupported());
-  document.getElementById('datos').innerHTML =
-    'Página: <b>' + location.protocol.replace(':', '') + '</b><br>' +
-    'Video HLS nativo: <b>' + (nativo ? 'sí (' + nativo + ')' : 'no') + '</b><br>' +
-    'MediaSource: <b>' + (mse ? 'sí' : 'no') + '</b> · hls.js: <b>' + (hlsjs ? 'sí' : 'no') + '</b><br>' +
-    '<span class="chico">' + navigator.userAgent + '</span>';
+  function esHttps(u) { return u && u.indexOf('https://') === 0; }
 
-  function dibujar() {
-    lista.innerHTML = '';
-    items.forEach(function (it, i) {
-      var li = document.createElement('li');
-      if (i === foco) li.className = 'foco';
-      var n = document.createElement('span'); n.textContent = it.nombre;
-      var r = document.createElement('span'); r.className = 'res' + (it.estado ? ' ' + it.estado : ''); r.textContent = it.res || (it.url ? (it.url.indexOf('https') === 0 ? 'https' : 'http') : '');
-      li.appendChild(n); li.appendChild(r); lista.appendChild(li);
-      // El navegador del Philips usa el control como mouse: OK hace clic donde está el puntero.
-      li.addEventListener('click', function () {
-        video.muted = false;
-        mostrarEvento('clic en "' + it.nombre + '"');
-        foco = i; dibujar();
-        if (i === 0) probarTodos(); else probar(i);
-      });
+  /* ---------- Pantalla completa ---------- */
+  function pantallaCompleta() {
+    var el = document.documentElement;
+    var f = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+    try { if (f && !document.fullscreenElement && !document.webkitFullscreenElement) { var p = f.call(el); if (p && p.catch) p.catch(function () {}); } } catch (e) {}
+  }
+  function salirPantallaCompleta() {
+    var f = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+    try { if (f && (document.fullscreenElement || document.webkitFullscreenElement)) { var p = f.call(document); if (p && p.catch) p.catch(function () {}); } } catch (e) {}
+  }
+
+  /* ---------- Lista de canales ---------- */
+  function dibujarCategorias() {
+    var c = $('cats'); c.innerHTML = '';
+    categorias.forEach(function (g) {
+      if (!canales.some(function (x) { return x.categoria === g.id; })) return;
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = g.nombre;
+      if (g.id === catActual) b.className = 'on';
+      b.onclick = function () { catActual = g.id; dibujarCategorias(); dibujarLista(); };
+      c.appendChild(b);
     });
-    var f = lista.children[foco]; if (f && f.scrollIntoView) f.scrollIntoView({ block: 'nearest' });
+  }
+  function dibujarLista() {
+    var l = $('lista'); l.innerHTML = '';
+    canales.forEach(function (ch, i) {
+      if (ch.categoria !== catActual) return;
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'canal';
+      if (ch.logo) { var im = document.createElement('img'); im.src = ch.logo; im.alt = ''; im.onerror = function () { im.style.visibility = 'hidden'; }; b.appendChild(im); }
+      var t = document.createElement('span'); t.textContent = ch.nombre;
+      var s = document.createElement('small'); s.textContent = 'Canal ' + ch.numero; t.appendChild(s); b.appendChild(t);
+      b.onclick = function () { video.muted = false; pantallaCompleta(); reproducir(i); };
+      l.appendChild(b);
+    });
   }
 
-  function marcar(it, estado, texto) { it.estado = estado; it.res = texto; dibujar(); }
-
+  /* ---------- Reproducción ---------- */
   function limpiar() {
-    clearTimeout(temporizador);
     if (hls) { hls.destroy(); hls = null; }
-    video.removeAttribute('src'); video.load();
-  }
-
-  function probar(i, alTerminar) {
-    var it = items[i];
-    if (!it || !it.url) { if (alTerminar) alTerminar(); return; }
-    limpiar();
-    marcar(it, '', 'probando…');
-    var terminado = false;
-    function fin(ok, texto) {
-      if (terminado) return; terminado = true;
-      marcar(it, ok ? 'ok' : 'mal', texto);
-      if (alTerminar) setTimeout(alTerminar, ok ? 2500 : 300);
-    }
     video.onplaying = null; video.onerror = null;
-
-    function conHlsJs() {
-      if (!hlsjs) return fin(false, '✖ no reproduce (sin hls.js)');
-      hls = new Hls({ manifestLoadingTimeOut: 8000 });
-      hls.on(Hls.Events.ERROR, function (_, d) {
-        if (d.fatal) fin(false, '✖ hls.js: ' + d.details + (d.response && d.response.code ? ' (' + d.response.code + ')' : ''));
-      });
-      video.onplaying = function () { fin(true, '✔ hls.js'); };
-      hls.loadSource(it.url);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, function () { video.play().catch(function () {}); });
-      temporizador = setTimeout(function () { fin(false, '✖ hls.js: no arrancó en 12 s'); }, 12000);
-    }
-
-    if (nativo) {
-      video.onplaying = function () { fin(true, '✔ nativo'); };
-      video.onerror = function () { clearTimeout(temporizador); conHlsJs(); };
-      video.src = it.url;
-      video.play().catch(function () {});
-      temporizador = setTimeout(function () { if (!terminado) { video.onerror = null; conHlsJs(); } }, 10000);
-    } else {
-      conHlsJs();
-    }
   }
-
-  function probarTodos() {
-    autoIndice = 1;
+  function abrirEnlace(url, alFallar) {
+    limpiar();
+    var nativo = video.canPlayType('application/vnd.apple.mpegurl') || video.canPlayType('application/x-mpegURL');
+    var listo = false, timer;
+    function ok() { if (listo) return; listo = true; clearTimeout(timer); }
+    function falla() { if (listo) return; listo = true; clearTimeout(timer); limpiar(); alFallar(); }
+    function conHls() {
+      if (!(window.Hls && Hls.isSupported())) return falla();
+      hls = new Hls({ manifestLoadingTimeOut: 8000 });
+      hls.on(Hls.Events.ERROR, function (_, d) { if (d.fatal) falla(); });
+      video.onplaying = ok;
+      hls.loadSource(url); hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, function () { var p = video.play(); if (p && p.catch) p.catch(function () {}); });
+      timer = setTimeout(falla, 12000);
+    }
+    if (nativo) {
+      video.onplaying = ok;
+      video.onerror = function () { if (listo) return; clearTimeout(timer); limpiar(); conHls(); };
+      video.src = url; var p = video.play(); if (p && p.catch) p.catch(function () {});
+      timer = setTimeout(function () { if (!listo) { video.onerror = null; conHls(); } }, 10000);
+    } else { conHls(); }
+  }
+  function reproducir(i) {
+    if (i < 0 || i >= canales.length) return;
+    var mio = ++intento;
+    var ch = canales[i];
+    var enlaces = ch.enlaces.filter(function (e) { return esHttps(e.url); }).map(function (e) { return e.url; });
+    idx = i; catActual = ch.categoria;
+    $('inicio').style.display = 'none';
+    $('reproductor').className = 'activo';
+    mostrarBarra(ch, 'Sintonizando…');
+    var n = 0;
     (function siguiente() {
-      if (autoIndice >= items.length) { limpiar(); items[0].res = 'listo: sacale una foto a la lista'; dibujar(); return; }
-      foco = autoIndice; dibujar();
-      probar(autoIndice++, siguiente);
+      if (mio !== intento) return;
+      if (n >= enlaces.length) { avisar('Este canal no está disponible ahora'); mostrarBarra(ch, 'No disponible'); return; }
+      var url = enlaces[n++];
+      abrirEnlace(url, function () { if (mio === intento) siguiente(); });
+      // al arrancar, mostrar el detalle
+      video.onplaying = (function (prev) { return function () { if (prev) prev(); if (mio === intento) mostrarBarra(ch, ''); }; })(video.onplaying);
     })();
   }
-
-  function mostrarEvento(texto) { document.getElementById('tecla').textContent = texto; }
-
-  // Sonido activado desde el primer clic (el navegador lo permite después de un gesto del usuario).
-  video.muted = false;
-  video.volume = 1;
-  var btnSonido = document.getElementById('btn-sonido');
-  btnSonido.addEventListener('click', function () {
-    video.muted = !video.muted;
-    btnSonido.textContent = video.muted ? '🔇 Sonido: no' : '🔊 Sonido: sí';
-  });
-
-  // Pasar al canal siguiente o anterior (sin contar la fila "Probar todos").
   function cambiar(delta) {
-    if (items.length < 2) return;
-    var i = foco + delta;
-    if (i < 1) i = items.length - 1;
-    if (i >= items.length) i = 1;
-    foco = i; dibujar(); probar(i);
+    if (!canales.length) return;
+    var i = idx < 0 ? 0 : (idx + delta + canales.length) % canales.length;
+    reproducir(i);
   }
-  document.getElementById('btn-sig').addEventListener('click', function () { video.muted = false; cambiar(1); });
-  document.getElementById('btn-ant').addEventListener('click', function () { video.muted = false; cambiar(-1); });
+  function irAlNumero(n) {
+    for (var i = 0; i < canales.length; i++) if (canales[i].numero === n) return reproducir(i);
+    avisar('No hay un canal ' + n);
+  }
 
-  // Para saber cómo llega el control remoto: como teclas, como mouse o como toques.
-  ['keyup', 'keypress'].forEach(function (tipo) {
-    document.addEventListener(tipo, function (e) { mostrarEvento(tipo + ': ' + (e.key || '?') + ' · keyCode ' + e.keyCode); });
-  });
-  document.addEventListener('mousemove', function (e) {
-    var t = document.getElementById('tecla');
-    if (t.textContent.indexOf('Tecla') !== 0 && t.textContent.indexOf('clic') !== 0) t.textContent = 'Mouse en ' + e.clientX + ', ' + e.clientY;
-  });
+  /* ---------- Barra, avisos y controles en pantalla ---------- */
+  function mostrarBarra(ch, detalle) {
+    $('barraNum').textContent = ch.numero + '  ' + ch.nombre;
+    $('barraDet').textContent = detalle || (ch.emisora || '');
+    $('logoImg').src = ch.logo || ''; $('logoImg').style.visibility = ch.logo ? 'visible' : 'hidden';
+    ['barra', 'logoEsq', 'controles'].forEach(function (id) { $(id).className = $(id).className.replace(' ver', '') + ' ver'; });
+    clearTimeout(timerBarra);
+    timerBarra = setTimeout(ocultarBarra, 5000);
+  }
+  function ocultarBarra() { ['barra', 'logoEsq', 'controles'].forEach(function (id) { $(id).className = $(id).className.replace(' ver', ''); }); }
+  function avisar(t) { var a = $('aviso'); a.textContent = t; a.style.display = 'block'; clearTimeout(timerAviso); timerAviso = setTimeout(function () { a.style.display = 'none'; }, 3000); }
+  function volverALista() {
+    intento++; limpiar(); video.pause(); video.removeAttribute('src');
+    $('reproductor').className = ''; $('inicio').style.display = 'flex';
+    salirPantallaCompleta(); dibujarCategorias(); dibujarLista();
+  }
+  $('bAnt').onclick = function () { cambiar(-1); };
+  $('bSig').onclick = function () { cambiar(1); };
+  $('bLista').onclick = volverALista;
+  // con el puntero (mouse): al mover, aparecen los controles; un clic sobre el video los muestra
+  $('reproductor').addEventListener('mousemove', function () { if (idx >= 0) mostrarBarra(canales[idx], ''); });
+  $('reproductor').addEventListener('click', function (e) { if (e.target === video && idx >= 0) mostrarBarra(canales[idx], ''); });
 
+  /* ---------- Teclas ---------- */
+  function mostrarTecla(e, tipo) {
+    $('tecla').textContent = tipo + ': ' + (e.key || '?') + ' · ' + (e.code || '?') + ' · keyCode ' + e.keyCode;
+  }
+  document.addEventListener('keyup', function (e) { mostrarTecla(e, 'keyup'); });
   document.addEventListener('keydown', function (e) {
-    mostrarEvento('Tecla: ' + (e.key || '?') + ' · code: ' + (e.code || '?') + ' · keyCode: ' + e.keyCode);
+    mostrarTecla(e, 'keydown');
     var k = e.key, c = e.keyCode;
-    // Teclas de canal de los televisores (ChannelUp/Down = 427/428) y PageUp/PageDown.
-    if (k === 'ChannelUp' || c === 427 || c === 33) { e.preventDefault(); cambiar(1); return; }
-    if (k === 'ChannelDown' || c === 428 || c === 34) { e.preventDefault(); cambiar(-1); return; }
-    if (k === 'ArrowDown' || c === 40) { foco = Math.min(items.length - 1, foco + 1); dibujar(); e.preventDefault(); }
-    else if (k === 'ArrowUp' || c === 38) { foco = Math.max(0, foco - 1); dibujar(); e.preventDefault(); }
-    else if (k === 'Enter' || c === 13) { e.preventDefault(); if (foco === 0) probarTodos(); else probar(foco); }
+    var jugando = $('reproductor').className === 'activo';
+    if (!jugando) return; // en la lista, el navegador maneja el foco con el puntero
+    var parar = true;
+    if (k === 'ChannelUp' || c === 427 || c === 33 || k === 'ArrowUp' || c === 38) cambiar(1);
+    else if (k === 'ChannelDown' || c === 428 || c === 34 || k === 'ArrowDown' || c === 40) cambiar(-1);
+    else if (k === 'Escape' || k === 'GoBack' || k === 'BrowserBack' || c === 27 || c === 8 || c === 461 || c === 10009 || c === 166) volverALista();
+    else if (k === 'Enter' || c === 13) mostrarBarra(canales[idx], '');
+    else if ((k >= '0' && k <= '9' && k.length === 1) || (c >= 96 && c <= 105)) {
+      var d = k.length === 1 ? k : String(c - 96);
+      marcando += d; var num = $('numero'); num.textContent = marcando; num.style.display = 'block';
+      clearTimeout(timerNumero);
+      timerNumero = setTimeout(function () { var n = parseInt(marcando, 10); marcando = ''; num.style.display = 'none'; if (!isNaN(n)) irAlNumero(n); }, 1500);
+    } else parar = false;
+    if (parar) e.preventDefault();
   });
 
+  /* ---------- Cartelera ---------- */
   fetch('../cartelera.json').then(function (r) { return r.json(); }).then(function (c) {
-    var elegir = function (cat, n) {
-      return c.canales.filter(function (x) { return x.categoria === cat; })
-        .sort(function (a, b) { return (b.enlaces[0].puntaje || 0) - (a.enlaces[0].puntaje || 0); })
-        .slice(0, n);
-    };
-    var canales = elegir('argentina', 10).concat(elegir('noticias', 5), elegir('deportes', 3));
-    items = [{ nombre: '▶ Probar todos (automático)', url: null, res: '' }].concat(canales.map(function (x) {
-      return { nombre: x.numero + ' · ' + x.nombre, url: x.enlaces[0].url };
-    }));
-    dibujar();
-  }).catch(function (e) {
-    lista.innerHTML = '<li>No pude cargar la cartelera: ' + e + '</li>';
-  });
+    categorias = c.categorias || [];
+    canales = (c.canales || []).filter(function (x) { return x.enlaces && x.enlaces.some(function (e) { return esHttps(e.url); }); });
+    if (!canales.some(function (x) { return x.categoria === catActual; }) && canales.length) catActual = canales[0].categoria;
+    dibujarCategorias(); dibujarLista();
+  }).catch(function (e) { $('lista').textContent = 'No pude cargar la cartelera: ' + e; });
+
+  // Para pruebas desde la consola
+  window.sandytv = { cambiar: cambiar, reproducir: reproducir, volverALista: volverALista, estado: function () { return { idx: idx, canal: idx >= 0 ? canales[idx].nombre : null, activo: $('reproductor').className }; } };
 })();
 </script>
 </body>
