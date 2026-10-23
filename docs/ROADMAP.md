@@ -295,29 +295,48 @@ Los datos que no estén dicen "Sin dato".
 - Logos guardados en caché en el aparato (descargar una vez).
 - Canal sin programación: una sola franja que dice el nombre del canal.
 
-**3.5 Mi lista (cartelera de favoritos) — pedido del dueño, 2026-10-22.** La cartelera completa tiene cientos
-de canales (hoy ~940); el uso diario tiene que ser sobre **una lista corta y propia** de cada televisor.
-- **Dos modos** que se alternan con un botón (por ejemplo, el azul) o desde Ajustes: **Mi lista** (solo los
-  canales elegidos) y **Todos los canales** (la cartelera completa, para descubrir y sumar canales).
-- **Agregar:** desde la ficha del canal (INFO), desde la grilla o manteniendo OK sobre un canal en cualquier
-  fila: "➕ Agregar a Mi lista". **Quitar:** igual, "➖ Quitar de Mi lista". Un canal puede estar en la
-  lista aunque sea de otra categoría.
-- **Primera vez:** la app propone una lista inicial corta (por ejemplo los canales del grupo "Argentina
-  (aire)" mejor puntuados) y el dueño la ajusta. Mi lista **nunca** arranca vacía.
-- **Orden propio:** en Mi lista los canales se pueden **mover** (subir/bajar). CH+/CH− y los números cambian
-  de canal **dentro de Mi lista** cuando está activa (los números de Mi lista son 1, 2, 3… propios; el número
-  global del canal se ve en la ficha).
-- **Las categorías** (Noticias, Deportes…) en modo Mi lista muestran solo los canales de la lista; las
-  categorías vacías se ocultan.
-- **Si un canal de Mi lista desaparece de la cartelera** (lo sacó el generador por caído): queda en la lista
-  **atenuado y con el aviso "No disponible ahora"**, no se borra solo; vuelve a andar si el canal regresa.
-- **Dónde se guarda:** primero en el aparato (`SharedPreferences`, clave `sandytv_milista`, guardando el `id`
-  del canal, por ejemplo `Telefe.ar`, no el número). **En la Fase 4**, opcional: sincronizar Mi lista entre los
-  televisores del hogar (tabla en Supabase), con la posibilidad de que cada televisor tenga la suya.
-- **Pantalla "Editar Mi lista"** (desde Ajustes): lista de todos los canales con buscador por nombre y
-  filtro por categoría y país, para tildar y destildar muchos de una vez.
-- **Tests:** agregar, quitar, reordenar, persistencia al reiniciar, canal que desaparece de la cartelera,
-  cambio de canal con CH+/CH− en cada modo.
+**3.5 Listas de favoritos (cartelera propia) — pedido del dueño, 2026-10-22 (ampliado el mismo día).** La
+cartelera completa tiene cientos de canales (hoy ~940); el uso diario tiene que ser sobre **listas cortas y
+propias**. Este paso vale **igual para la app de Android (Noblex) y para la versión web (Philips)**: lo que
+se define acá es el *comportamiento* y el *formato de los datos*; se programa una vez en cada versión.
+
+- **Varias listas, cada una con su título.** Se pueden **crear**, **renombrar** (título libre, por ejemplo
+  "Familia", "Noticias", "Fútbol") y **borrar** (con confirmación). Siempre existe al menos una lista; el
+  título por defecto de la primera es "Mi lista".
+- **Armar una lista a gusto:** el cliente agrega **los canales que quiera**, **navegando por las categorías**
+  de la cartelera (Argentina, Noticias, Deportes…) y tildando los que le interesan, o desde la ficha del
+  canal ("Agregar a <lista>") o dejando apretado OK sobre un canal. Un canal puede estar en **varias listas**.
+  Para elegir muchos de una vez: pantalla **"Editar lista"** con buscador por nombre y filtro por categoría
+  y país.
+- **Orden:** dentro de la lista los canales se pueden **mover** (subir/bajar) o mostrar **agrupados por
+  categoría** (opción de la lista). CH+/CH− y los números cambian de canal **dentro de la lista activa**; los
+  números de la lista son 1, 2, 3… propios (el número global se ve en la ficha).
+- **Fijar la lista de inicio ("cartelera favorita fija").** Una opción en Ajustes: *"Al abrir SandyTV, mostrar:
+  Todos los canales / la lista [elegir]"*. Con una lista fijada, **cada vez que se abre la app ya está en esa
+  lista**, sin pasos extra. Un botón del control (por ejemplo el azul de la fase anterior queda para el
+  formato; para esto, el verde o desde el Inicio) alterna entre la lista fijada, otras listas y **Todos los
+  canales**. Sin lista fijada, la app abre como hoy (Inicio con todas las categorías).
+- **Primera vez:** si no hay ninguna lista, la app crea "Mi lista" con una propuesta corta (los mejores
+  canales de Argentina por puntaje) para que no arranque vacía, y el dueño la ajusta.
+- **Canal que desaparece de la cartelera:** queda en la lista, **atenuado con "No disponible ahora"**; no se
+  borra solo. Si vuelve, vuelve a andar.
+- **Formato de los datos (igual en las dos versiones, por si algún día se quiere compartir o exportar):**
+  ```json
+  { "version": 1,
+    "fijada": "familia",
+    "listas": [
+      { "id": "familia", "titulo": "Familia", "agrupar": false, "canales": ["Telefe.ar", "ElTrece.ar"] }
+    ] }
+  ```
+  Los canales se guardan por su **`id`** (por ejemplo `Telefe.ar`), nunca por número, porque el número
+  puede cambiar. Dónde se guarda: en el aparato (app: `SharedPreferences`, clave `sandytv_listas`; web:
+  `localStorage`, misma clave).
+- **Más adelante (Fase 4):** opcionalmente sincronizar las listas entre los televisores del hogar (Supabase);
+  cada televisor puede tener las suyas.
+- **Tests:** crear, renombrar y borrar listas (no se puede borrar la última), agregar y quitar canales,
+  un canal en varias listas, reordenar, agrupar por categoría, **lista fijada abre directo en esa lista**,
+  fijada que se borra → vuelve a "Todos", persistencia al reiniciar, canal que desaparece de la cartelera,
+  cambio de canal con CH+/CH− dentro de la lista activa.
 
 **Terminado cuando:** el dueño puede ver y ocultar el reloj, abrir la ficha y la grilla con el control, y
 elegir un canal desde la grilla.
