@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../logica/listas_favoritos.dart';
+import '../logica/reloj.dart';
 import '../logica/salud_enlaces.dart';
 import '../modelos/cartelera.dart';
 import '../modelos/formato_imagen.dart';
@@ -20,7 +21,20 @@ class AlmacenPrefs implements Almacen {
 
 /// Lo que la app sabe en todo momento: la cartelera, la salud de los enlaces y las preferencias.
 class EstadoApp extends ChangeNotifier {
-  EstadoApp({required this.repo, required this.prefs, this.actualizacionAutomatica = true});
+  EstadoApp({required this.repo, required this.prefs, this.actualizacionAutomatica = true, RelojArgentino? reloj})
+      : reloj = reloj ?? RelojArgentino();
+
+  /// Hora de Argentina, corregida con la hora de GitHub.
+  final RelojArgentino reloj;
+
+  static const claveReloj = 'sandytv_reloj';
+
+  bool get mostrarReloj => prefs.getBool(claveReloj) ?? true;
+
+  Future<void> cambiarMostrarReloj(bool v) async {
+    await prefs.setBool(claveReloj, v);
+    notifyListeners();
+  }
 
   /// Si es verdadero, busca una cartelera nueva cada 3 horas mientras la app está abierta.
   final bool actualizacionAutomatica;

@@ -16,6 +16,7 @@ import '../servicios/estado_app.dart';
 import '../servicios/motor_video.dart';
 import 'dialogos.dart';
 import 'pantalla_ajustes.dart';
+import 'reloj_esquina.dart';
 import 'tema.dart';
 
 enum _Estado { conectando, reproduciendo, sinSenal }
@@ -299,7 +300,14 @@ class _PantallaCanalState extends State<PantallaCanal> {
               _PantallaEspera(canal: _objetivo, numero: widget.estado.numeroVisible(_objetivo), sinSenal: _estadoCanal == _Estado.sinSenal, detalle: _errores),
             if (_barra && hayVideo) _LogoEsquina(canal: _objetivo),
             if (_barra && hayVideo)
-              _BarraCanal(canal: _objetivo, numero: widget.estado.numeroVisible(_objetivo), enlace: _cambiando ? null : _enlace, sintonizando: _cambiando),
+              _BarraCanal(
+                canal: _objetivo,
+                numero: widget.estado.numeroVisible(_objetivo),
+                enlace: _cambiando ? null : _enlace,
+                sintonizando: _cambiando,
+                mostrarReloj: widget.estado.mostrarReloj,
+              ),
+            RelojEsquina(estado: widget.estado),
             if (_marcando.isNotEmpty) _NumeroMarcado(texto: _marcando),
             if (_aviso != null) _Aviso(texto: _aviso!),
           ]),
@@ -353,9 +361,10 @@ class _PantallaEspera extends StatelessWidget {
 
 /// Barra de abajo: a qué canal se cambió (se ve por unos segundos sobre el video en vivo).
 class _BarraCanal extends StatelessWidget {
-  const _BarraCanal({required this.canal, required this.numero, required this.enlace, this.sintonizando = false});
+  const _BarraCanal({required this.canal, required this.numero, required this.enlace, this.sintonizando = false, this.mostrarReloj = false});
   final Canal canal;
   final int numero;
+  final bool mostrarReloj;
   final Enlace? enlace;
 
   /// Mientras el canal nuevo todavía está arrancando.
@@ -368,7 +377,8 @@ class _BarraCanal extends StatelessWidget {
       alignment: Alignment.bottomCenter,
       child: Container(
         key: const Key('barra_canal'),
-        padding: const EdgeInsets.fromLTRB(40, 36, 40, 24),
+        // Si el reloj está visible (abajo a la izquierda), el texto de la barra empieza después de él.
+        padding: EdgeInsets.fromLTRB(mostrarReloj ? RelojEsquina.ancho + 50 : 40, 36, 40, 24),
         decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.transparent, Color(0xE6000000)])),
         child: Row(children: [
           Expanded(

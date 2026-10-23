@@ -36,6 +36,12 @@ class PantallaAjustes extends StatelessWidget {
               value: estado.retomarAlAbrir,
               onChanged: estado.cambiarRetomar,
             ),
+            SwitchListTile(
+              title: const Text('Mostrar el reloj'),
+              subtitle: Text('Hora de Argentina, abajo a la izquierda. ${estado.reloj.sincronizado ? 'Sincronizada con GitHub.' : 'Todavía usa la hora del televisor.'}'),
+              value: estado.mostrarReloj,
+              onChanged: estado.cambiarMostrarReloj,
+            ),
             ListTile(
               title: const Text('Listas de favoritos'),
               subtitle: Text(estado.listas.fijada == null

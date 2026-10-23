@@ -102,6 +102,7 @@ void main() {
     final estado = await crearEstado();
     await t.pumpWidget(MaterialApp(home: PantallaAjustes(estado: estado)));
     await t.pump();
+    await t.scrollUntilVisible(find.text('Probar las teclas del control'), 200);
     await t.tap(find.text('Probar las teclas del control'));
     await t.pumpAndSettle();
     expect(find.textContaining('Apretá una tecla'), findsOneWidget);

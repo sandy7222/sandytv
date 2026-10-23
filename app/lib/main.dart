@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'logica/reloj.dart';
 import 'servicios/estado_app.dart';
 import 'servicios/repositorio_cartelera.dart';
 import 'ui/pantalla_presentacion.dart';
@@ -16,17 +17,21 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   final prefs = await SharedPreferences.getInstance();
+  final reloj = RelojArgentino();
   final repo = RepositorioCartelera(
     almacen: AlmacenPrefs(prefs),
     url: Uri.parse(urlCartelera),
     descargar: (url) async {
       final r = await http.get(url).timeout(const Duration(seconds: 30));
       if (r.statusCode != 200) throw Exception('respuesta ${r.statusCode}');
+      // La respuesta de GitHub trae su hora exacta: sirve para corregir el reloj del televisor.
+      final fecha = RelojArgentino.fechaDeEncabezado(r.headers['date']);
+      if (fecha != null) reloj.sincronizar(fecha);
       return utf8.decode(r.bodyBytes);
     },
     cargarInicial: () => rootBundle.loadString('assets/cartelera_inicial.json'),
   );
-  runApp(SandyTvApp(estado: EstadoApp(repo: repo, prefs: prefs)));
+  runApp(SandyTvApp(estado: EstadoApp(repo: repo, prefs: prefs, reloj: reloj)));
 }
 
 class SandyTvApp extends StatelessWidget {
