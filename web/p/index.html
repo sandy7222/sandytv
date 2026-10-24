@@ -57,6 +57,10 @@
   #logoEsq.ver { opacity:1; } #logoEsq img { max-width:90%; max-height:90%; }
   #controles { position:absolute; top:24px; left:28px; display:flex; gap:10px; flex-wrap:wrap; max-width:60vw; opacity:0; transition:opacity .25s; }
   #controles.ver { opacity:1; }
+  .zona { position:absolute; top:130px; bottom:150px; width:11vw; display:flex; align-items:center; justify-content:center; font-size:64px; color:#fff; cursor:pointer; opacity:0; transition:opacity .25s; z-index:2; user-select:none; }
+  .zona:hover { background:#22D3EE22; opacity:1; }
+  .zona.ver { opacity:.55; }
+  #zonaAnt { left:0; } #zonaSig { right:0; }
   #aviso { position:absolute; top:24px; left:50%; transform:translateX(-50%); background:#141B2Dee; padding:10px 22px; border-radius:24px; font-size:20px; display:none; z-index:3; }
   #numero { position:absolute; top:24px; right:240px; font-size:54px; font-weight:800; color:var(--acento); display:none; text-shadow:0 2px 8px #000; }
 
@@ -89,6 +93,8 @@
     <button id="bRelojP" type="button">🕒</button>
     <button id="bLista" type="button">☰ Lista</button>
   </div>
+  <div class="zona" id="zonaAnt" title="Canal anterior">‹</div>
+  <div class="zona" id="zonaSig" title="Canal siguiente">›</div>
   <div id="numero"></div>
   <div id="aviso"></div>
   <div id="barra"><div class="num" id="barraNum"></div><div class="det" id="barraDet"></div></div>
@@ -339,10 +345,10 @@
     $('barraNum').textContent = numeroVisible(ch) + '  ' + ch.nombre;
     $('barraDet').textContent = detalle || (ch.emisora || '');
     $('logoImg').src = ch.logo || ''; $('logoImg').style.visibility = ch.logo ? 'visible' : 'hidden';
-    ['barra', 'logoEsq', 'controles'].forEach(function (id) { $(id).className = $(id).className.replace(' ver', '') + ' ver'; });
+    ['barra', 'logoEsq', 'controles', 'zonaAnt', 'zonaSig'].forEach(function (id) { $(id).className = $(id).className.replace(' ver', '') + ' ver'; });
     clearTimeout(timerBarra); timerBarra = setTimeout(ocultarBarra, 5000);
   }
-  function ocultarBarra() { ['barra', 'logoEsq', 'controles'].forEach(function (id) { $(id).className = $(id).className.replace(' ver', ''); }); }
+  function ocultarBarra() { ['barra', 'logoEsq', 'controles', 'zonaAnt', 'zonaSig'].forEach(function (id) { $(id).className = $(id).className.replace(' ver', ''); }); }
   function avisar(t) { var a = $('aviso'); a.textContent = t; a.style.display = 'block'; clearTimeout(timerAviso); timerAviso = setTimeout(function () { a.style.display = 'none'; }, 3000); }
   function volverALista() {
     intento++; limpiar(); video.pause(); video.removeAttribute('src');
@@ -352,6 +358,8 @@
   $('bAnt').onclick = function () { cambiar(-1); };
   $('bSig').onclick = function () { cambiar(1); };
   $('bLista').onclick = volverALista;
+  $('zonaAnt').onclick = function () { cambiar(-1); };
+  $('zonaSig').onclick = function () { cambiar(1); };
   $('bFav').onclick = function () {
     var d = destino(); if (!d || !actual) return;
     alternarEnLista(d, actual); pintarFav();
