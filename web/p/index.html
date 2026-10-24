@@ -298,18 +298,27 @@
       video.onplaying = ok;
       hls.loadSource(url); hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, function () { var p = video.play(); if (p && p.catch) p.catch(function () {}); });
-      timer = setTimeout(falla, 12000);
+      timer = setTimeout(falla, 9000);
     }
     if (nativo) {
       video.onplaying = ok;
       video.onerror = function () { if (listo) return; clearTimeout(timer); limpiar(); conHls(); };
       video.src = url; var p = video.play(); if (p && p.catch) p.catch(function () {});
-      timer = setTimeout(function () { if (!listo) { video.onerror = null; conHls(); } }, 10000);
+      timer = setTimeout(function () { if (!listo) { video.onerror = null; conHls(); } }, 6000);
     } else { conHls(); }
   }
-  function reproducir(ch) {
+  // Canales que no arrancaron en este televisor: al cambiar de canal se saltean (se olvidan al cerrar el navegador).
+  var fallos = {};
+  try { fallos = JSON.parse(window.sessionStorage.getItem('sandytv_fallos')) || {}; } catch (e) { fallos = {}; }
+  function guardarFallos() { try { window.sessionStorage.setItem('sandytv_fallos', JSON.stringify(fallos)); } catch (e) {} }
+  var saltos = 0;
+
+  function reproducir(ch, dir) {
     if (!ch) return;
     var mio = ++intento;
+    if (!dir) { saltos = 0; delete fallos[ch.id]; guardarFallos(); } // si lo elegiste vos, se vuelve a intentar
+    // Se corta el video anterior ya mismo: si no, queda la última imagen congelada y parece que el botón no hizo nada.
+    limpiar(); video.pause(); video.removeAttribute('src'); try { video.load(); } catch (e) {}
     var enlaces = ch.enlaces.filter(function (e) { return esHttps(e.url); }).map(function (e) { return e.url; });
     actual = ch;
     aplicarFormato(formatoDe(ch));
@@ -320,14 +329,23 @@
     var n = 0;
     (function siguiente() {
       if (mio !== intento) return;
-      if (n >= enlaces.length) { avisar('Este canal no está disponible ahora'); mostrarBarra(ch, 'No disponible'); return; }
-      abrirEnlace(enlaces[n++], function () { if (mio === intento) mostrarBarra(ch, ''); }, function () { if (mio === intento) siguiente(); });
+      if (n >= enlaces.length) {
+        fallos[ch.id] = true; guardarFallos();
+        // Cambiando de canal con ▲ ▼ ‹ ›: se pasa solo al siguiente que ande, en vez de quedar parado en uno que no anda.
+        if (dir && saltos < 8) { saltos++; avisar('Se salteó "' + ch.nombre + '" (no disponible)'); cambiar(dir, true); return; }
+        avisar('Este canal no está disponible ahora'); mostrarBarra(ch, 'No disponible'); return;
+      }
+      abrirEnlace(enlaces[n++], function () { if (mio === intento) { delete fallos[ch.id]; saltos = 0; mostrarBarra(ch, ''); } }, function () { if (mio === intento) siguiente(); });
     })();
   }
-  function cambiar(delta) {
+  function cambiar(delta, auto) {
     var lista = canalesActivos(); if (!lista.length) return;
+    if (!auto) saltos = 0;
     var i = lista.indexOf(actual);
-    reproducir(lista[i < 0 ? 0 : (i + delta + lista.length) % lista.length]);
+    // el siguiente que no haya fallado en este televisor (si todos fallaron, se prueba el que sigue igual)
+    var k = i < 0 ? 0 : (i + delta + lista.length) % lista.length;
+    for (var t = 0; t < lista.length && fallos[lista[k].id]; t++) k = (k + delta + lista.length) % lista.length;
+    reproducir(lista[k], delta);
   }
   function irAlNumero(n) {
     var lista = canalesActivos();
