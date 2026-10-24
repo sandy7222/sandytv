@@ -74,7 +74,7 @@
 <div id="inicio">
   <div id="cab">
     <div class="logo">Sandy<b>TV</b></div>
-    <button id="bReloj" type="button">🕒 Reloj: sí</button>
+    <span><button id="bControl" type="button" onclick="location.href='control/'">🎛 Aprender el control</button><button id="bReloj" type="button">🕒 Reloj: sí</button></span>
   </div>
   <div id="listasBar"></div>
   <div id="cats"></div>
@@ -390,6 +390,14 @@
   /* ---------- Teclas ---------- */
   function mostrarTecla(e, tipo) { $('tecla').textContent = tipo + ': ' + (e.key || '?') + ' · ' + (e.code || '?') + ' · keyCode ' + e.keyCode; }
   document.addEventListener('keyup', function (e) { mostrarTecla(e, 'keyup'); });
+  // Botones aprendidos en la pantalla "Aprender el control" (control/): tienen prioridad sobre los de siempre.
+  var aprendidos = {};
+  try { var ap = JSON.parse(leer('sandytv_control')); if (ap && ap.acciones) aprendidos = ap.acciones; } catch (e) { aprendidos = {}; }
+  function esAprendido(e, accion) {
+    var lista = aprendidos[accion] || [];
+    for (var i = 0; i < lista.length; i++) if (lista[i].keyCode === e.keyCode && (!lista[i].key || lista[i].key === e.key)) return true;
+    return false;
+  }
   document.addEventListener('keydown', function (e) {
     mostrarTecla(e, 'keydown');
     var tag = (e.target && e.target.tagName) || '';
@@ -397,7 +405,12 @@
     var k = e.key, c = e.keyCode;
     if ($('reproductor').className !== 'activo') return; // en la lista, el navegador maneja el foco con el puntero
     var parar = true;
-    if (k === 'ChannelUp' || c === 427 || c === 33 || k === 'ArrowUp' || c === 38) cambiar(1);
+    if (esAprendido(e, 'canalSig')) cambiar(1);
+    else if (esAprendido(e, 'canalAnt')) cambiar(-1);
+    else if (esAprendido(e, 'atras')) volverALista();
+    else if (esAprendido(e, 'formato')) cambiarFormato();
+    else if (esAprendido(e, 'favorito')) $('bFav').click();
+    else if (k === 'ChannelUp' || c === 427 || c === 33 || k === 'ArrowUp' || c === 38) cambiar(1);
     else if (k === 'ChannelDown' || c === 428 || c === 34 || k === 'ArrowDown' || c === 40) cambiar(-1);
     else if (k === 'Escape' || k === 'GoBack' || k === 'BrowserBack' || c === 27 || c === 8 || c === 461 || c === 10009 || c === 166) volverALista();
     else if (k === 'Enter' || c === 13) mostrarBarra(actual, '');

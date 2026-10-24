@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SandyTV · Aprender el control</title>
+<link rel="icon" type="image/png" sizes="192x192" href="../../icono-192.png">
+<link rel="shortcut icon" href="../../favicon.ico">
+<meta name="theme-color" content="#0A0E1A">
+<!--
+  Aprender el control remoto: la página te pide botón por botón y anota qué le llega al navegador de la tele
+  (key, code, keyCode). Los botones que el televisor se queda para sí (por ejemplo CH+ / CH−) no llegan:
+  se marcan "no llegó". Lo aprendido se guarda (localStorage, clave sandytv_control) y el reproductor de
+  SandyTV lo usa para canal siguiente / anterior, Atrás, formato y favorito.
+-->
+<style>
+  :root { --fondo:#0A0E1A; --sup:#141B2D; --acento:#22D3EE; --texto:#F1F5F9; --suave:#94A3B8; --ok:#4ADE80; --mal:#F87171; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; background:var(--fondo); color:var(--texto); font-family:system-ui, Roboto, Arial, sans-serif; }
+  body { padding:24px 36px; overflow:auto; }
+  .logo { font-size:30px; font-weight:800; } .logo b { background:var(--acento); color:var(--fondo); padding:0 8px; border-radius:6px; margin-left:4px; }
+  h1 { font-size:26px; margin:14px 0 4px; }
+  p { color:var(--suave); margin:4px 0 14px; font-size:16px; }
+  button { font:inherit; color:var(--texto); background:var(--sup); border:3px solid transparent; border-radius:12px; padding:12px 20px; cursor:pointer; margin-right:10px; }
+  button:hover { border-color:var(--acento); }
+  #paso { background:var(--sup); border-radius:16px; padding:22px 26px; margin:10px 0; }
+  #pedido { font-size:34px; font-weight:800; color:var(--acento); }
+  #cuenta { font-size:18px; color:var(--suave); margin-top:6px; }
+  #visto { font-family:monospace; font-size:18px; margin-top:12px; min-height:28px; }
+  table { border-collapse:collapse; width:100%; margin-top:10px; font-size:16px; }
+  td, th { border-bottom:1px solid #263248; padding:6px 10px; text-align:left; }
+  .ok { color:var(--ok); } .mal { color:var(--mal); }
+  #vivo { position:fixed; right:12px; bottom:8px; font-size:12px; color:#fff9; background:#0008; padding:2px 8px; border-radius:6px; }
+</style>
+</head>
+<body>
+<div class="logo">Sandy<b>TV</b></div>
+<h1>Aprender el control remoto</h1>
+<p>Te voy a pedir los botones de a uno. Apretalos con el control; si no pasa nada en unos segundos, es que el televisor se lo queda y no le llega a la página.</p>
+
+<div id="inicio"><button id="bEmpezar" type="button">▶ Empezar</button><a href="../" style="color:var(--acento)">volver a SandyTV</a></div>
+
+<div id="paso" style="display:none">
+  <div id="progreso" style="color:var(--suave)"></div>
+  <div id="pedido"></div>
+  <div id="cuenta"></div>
+  <div id="visto"></div>
+  <div style="margin-top:14px"><button id="bSaltear" type="button">Saltear este botón</button><button id="bTerminar" type="button">Terminar ya</button></div>
+</div>
+
+<div id="resumen" style="display:none">
+  <h1>Resultado</h1>
+  <p id="resumenTexto"></p>
+  <table id="tabla"></table>
+  <div style="margin-top:16px">
+    <button id="bGuardar" type="button">💾 Guardar para usar en SandyTV</button>
+    <button id="bRepetir" type="button">↺ Repetir</button>
+    <a href="../" style="color:var(--acento)">volver a SandyTV</a>
+  </div>
+  <p id="guardado" class="ok"></p>
+</div>
+<div id="vivo">Apretá una tecla</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var LS = 'sandytv_control';
+  function guardarLS(v) { try { window.localStorage.setItem(LS, v); return true; } catch (e) { return false; } }
+
+  // acción: lo que hace SandyTV con ese botón si llega (canalSig, canalAnt, atras, formato, favorito)
+  var PASOS = [
+    { id: 'chMas', texto: 'CH + (canal arriba)', accion: 'canalSig' },
+    { id: 'chMenos', texto: 'CH − (canal abajo)', accion: 'canalAnt' },
+    { id: 'arriba', texto: 'Flecha ARRIBA' },
+    { id: 'abajo', texto: 'Flecha ABAJO' },
+    { id: 'izq', texto: 'Flecha IZQUIERDA' },
+    { id: 'der', texto: 'Flecha DERECHA' },
+    { id: 'ok', texto: 'OK (el botón del medio)' },
+    { id: 'atras', texto: 'ATRÁS', accion: 'atras' },
+    { id: 'rojo', texto: 'Botón ROJO' },
+    { id: 'verde', texto: 'Botón VERDE', accion: 'favorito' },
+    { id: 'amarillo', texto: 'Botón AMARILLO' },
+    { id: 'azul', texto: 'Botón AZUL', accion: 'formato' },
+    { id: 'n0', texto: 'Número 0' },
+    { id: 'n5', texto: 'Número 5' },
+    { id: 'info', texto: 'INFO' },
+    { id: 'guia', texto: 'GUÍA' },
+    { id: 'menu', texto: 'MENÚ u OPCIONES' },
+    { id: 'play', texto: 'PLAY / PAUSA' },
+    { id: 'silencio', texto: 'SILENCIO (mute)' },
+    { id: 'volMas', texto: 'VOLUMEN +' },
+    { id: 'volMenos', texto: 'VOLUMEN −' },
+    { id: 'extraSig', texto: 'Cualquier botón que quieras usar como CANAL SIGUIENTE (por ejemplo, otro que llegue)', accion: 'canalSig' },
+    { id: 'extraAnt', texto: 'Cualquier botón que quieras usar como CANAL ANTERIOR', accion: 'canalAnt' }
+  ];
+  var ESPERA = 7; // segundos por botón
+  var indice = 0, resultados = {}, timer = null, restante = 0, captura = null, avanzando = false;
+
+  function vistos(e) { return 'key=' + JSON.stringify(e.key) + '  code=' + JSON.stringify(e.code) + '  keyCode=' + e.keyCode; }
+  document.addEventListener('keydown', function (e) {
+    $('vivo').textContent = 'keydown: ' + vistos(e);
+    if (!captura || avanzando) return;
+    e.preventDefault();
+    captura = { llego: true, key: e.key, code: e.code, keyCode: e.keyCode, which: e.which };
+    $('visto').innerHTML = '<span class="ok">✔ Llegó:</span> ' + vistos(e);
+    avanzando = true; clearInterval(timer);
+    setTimeout(function () { terminarPaso(captura); }, 1100);
+  }, true);
+  document.addEventListener('keyup', function (e) { $('vivo').textContent = 'keyup: ' + vistos(e); }, true);
+
+  function mostrarPaso() {
+    if (indice >= PASOS.length) return resumen();
+    var p = PASOS[indice];
+    $('progreso').textContent = 'Botón ' + (indice + 1) + ' de ' + PASOS.length;
+    $('pedido').textContent = 'Apretá: ' + p.texto;
+    $('visto').textContent = '';
+    captura = { llego: false }; avanzando = false;
+    restante = ESPERA; pintarCuenta();
+    clearInterval(timer);
+    timer = setInterval(function () {
+      restante--; pintarCuenta();
+      if (restante <= 0) { clearInterval(timer); avanzando = true; $('visto').innerHTML = '<span class="mal">✖ No llegó nada.</span> El televisor se lo queda o no hay respuesta.'; setTimeout(function () { terminarPaso({ llego: false }); }, 1200); }
+    }, 1000);
+  }
+  function pintarCuenta() { $('cuenta').textContent = 'Esperando… ' + restante + ' s'; }
+  function terminarPaso(r) { resultados[PASOS[indice].id] = r; indice++; mostrarPaso(); }
+
+  function resumen() {
+    clearInterval(timer); captura = null;
+    $('paso').style.display = 'none'; $('resumen').style.display = 'block';
+    var llegaron = 0, filas = '';
+    PASOS.forEach(function (p) {
+      var r = resultados[p.id];
+      if (r && r.llego) llegaron++;
+      filas += '<tr><td>' + p.texto + '</td><td class="' + (r && r.llego ? 'ok' : 'mal') + '">' + (r && r.llego ? '✔ llegó' : r ? '✖ no llegó' : '— salteado') + '</td><td>' +
+        (r && r.llego ? 'key=' + JSON.stringify(r.key) + ' code=' + JSON.stringify(r.code) + ' keyCode=' + r.keyCode : '') + '</td></tr>';
+    });
+    $('tabla').innerHTML = '<tr><th>Botón</th><th>Resultado</th><th>Lo que llegó</th></tr>' + filas;
+    $('resumenTexto').textContent = 'Llegaron ' + llegaron + ' de ' + PASOS.length + ' botones. Sacale una foto a esta tabla si querés mandármela.';
+  }
+
+  $('bEmpezar').onclick = function () { $('inicio').style.display = 'none'; $('paso').style.display = 'block'; indice = 0; resultados = {}; mostrarPaso(); };
+  $('bSaltear').onclick = function () { if (avanzando) return; avanzando = true; clearInterval(timer); terminarPaso(null); };
+  $('bTerminar').onclick = function () { clearInterval(timer); resumen(); };
+  $('bRepetir').onclick = function () { $('resumen').style.display = 'none'; $('guardado').textContent = ''; $('bEmpezar').onclick(); };
+  $('bGuardar').onclick = function () {
+    // acciones: para cada función de SandyTV, los botones aprendidos que SÍ llegan
+    var acciones = {};
+    PASOS.forEach(function (p) {
+      var r = resultados[p.id];
+      if (p.accion && r && r.llego) { (acciones[p.accion] = acciones[p.accion] || []).push({ key: r.key, code: r.code, keyCode: r.keyCode }); }
+    });
+    var ok = guardarLS(JSON.stringify({ version: 1, acciones: acciones, pasos: resultados }));
+    var n = Object.keys(acciones).length;
+    $('guardado').textContent = ok ? ('Guardado. SandyTV va a usar ' + n + ' función(es) con tus botones.') : 'No pude guardar en este navegador.';
+    $('guardado').className = ok ? 'ok' : 'mal';
+  };
+
+  window.control = { pasos: function () { return PASOS.length; }, resultados: function () { return resultados; } };
+})();
+</script>
+</body>
+</html>
