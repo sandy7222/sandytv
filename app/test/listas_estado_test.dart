@@ -129,6 +129,9 @@ void main() {
   });
 
   testWidgets('el Inicio sin lista activa muestra las categorías como siempre', (t) async {
+    t.view.physicalSize = const Size(1280, 720); // pantalla de televisor
+    t.view.devicePixelRatio = 1.0;
+    addTearDown(t.view.reset);
     final e = await crear();
     await t.pumpWidget(MaterialApp(home: PantallaInicio(estado: e)));
     await t.pump();

@@ -6,6 +6,7 @@ import '../servicios/estado_app.dart';
 import 'dialogos.dart';
 import 'pantalla_ajustes.dart';
 import 'pantalla_canal.dart';
+import 'pantalla_en_vivo.dart';
 import 'pantalla_listas.dart';
 import 'pantalla_pelis.dart';
 import 'tema.dart';
@@ -74,6 +75,10 @@ class PantallaInicio extends StatelessWidget {
                         _BotonMenu(
                           texto: '▤  ${enLista ? lista.titulo : 'Todos los canales'}  ▾',
                           alElegir: () => elegirListaActiva(context, estado),
+                        ),
+                        _BotonMenu(
+                          texto: '📡  En vivo',
+                          alElegir: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PantallaEnVivo(estado: estado))),
                         ),
                         if (estado.peliculas != null)
                           _BotonMenu(

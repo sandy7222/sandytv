@@ -38,6 +38,7 @@ Future<void> main() async {
       prefs: prefs,
       reloj: reloj,
       cargarPeliculas: () => rootBundle.loadString('assets/peliculas_inicial.json'),
+      cargarEnVivo: () => rootBundle.loadString('assets/envivo_inicial.json'),
       // Las películas se abren con la app oficial de YouTube del televisor (con sus propias publicidades).
       abrirVideo: (url) async {
         try {

@@ -40,6 +40,9 @@ Future<EstadoApp> crearEstado() async {
 
 void main() {
   testWidgets('el Inicio muestra la cartelera de SandyTV y no tiene reproductor', (t) async {
+    t.view.physicalSize = const Size(1280, 720); // pantalla de televisor
+    t.view.devicePixelRatio = 1.0;
+    addTearDown(t.view.reset);
     final estado = await crearEstado();
     await t.pumpWidget(MaterialApp(home: PantallaInicio(estado: estado)));
     await t.pump();

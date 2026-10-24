@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,6 +9,7 @@ import '../logica/reloj.dart';
 import '../logica/salud_enlaces.dart';
 import '../modelos/cartelera.dart';
 import '../modelos/formato_imagen.dart';
+import '../modelos/en_vivo.dart';
 import '../modelos/peliculas.dart';
 import 'repositorio_cartelera.dart';
 
@@ -28,8 +30,73 @@ class EstadoApp extends ChangeNotifier {
     this.actualizacionAutomatica = true,
     RelojArgentino? reloj,
     this.cargarPeliculas,
+    this.cargarEnVivo,
     this.abrirVideo = _noAbre,
   }) : reloj = reloj ?? RelojArgentino();
+
+  /// Canales de YouTube en vivo que eligió el dueño (se lee de un archivo que viene dentro de la app).
+  final Future<String> Function()? cargarEnVivo;
+  CatalogoEnVivo? _enVivoBase;
+
+  static const claveEnVivoPropios = 'sandytv_envivo_propios';
+
+  /// Los canales de YouTube que cargó el dueño con el editor (se guardan en el aparato).
+  final List<CanalEnVivo> enVivoPropios = [];
+
+  /// Los canales que vienen con la app más los que cargó el dueño. Nunca es null: sin canales, queda vacío.
+  CatalogoEnVivo get enVivo => CatalogoEnVivo(
+        version: _enVivoBase?.version ?? '',
+        grupos: _enVivoBase?.grupos.isNotEmpty == true ? _enVivoBase!.grupos : CatalogoEnVivo.gruposPorDefecto,
+        canales: [...?_enVivoBase?.canales, ...enVivoPropios],
+      );
+
+  /// Agrega un canal propio (después hay que llamar a [cambioEnVivo] para guardarlo).
+  CanalEnVivo agregarEnVivo({required String titulo, required String url, required String grupo}) {
+    final c = CanalEnVivo(
+      id: 'propio-${DateTime.now().microsecondsSinceEpoch}-${enVivoPropios.length}',
+      titulo: titulo.trim(),
+      url: url,
+      grupo: grupo,
+      portada: null,
+      propio: true,
+    );
+    enVivoPropios.add(c);
+    return c;
+  }
+
+  bool borrarEnVivo(String id) {
+    final antes = enVivoPropios.length;
+    enVivoPropios.removeWhere((c) => c.id == id);
+    return enVivoPropios.length < antes;
+  }
+
+  /// Guarda los canales propios en el aparato y avisa a las pantallas.
+  Future<void> cambioEnVivo() async {
+    await prefs.setString(claveEnVivoPropios, jsonEncode([for (final c in enVivoPropios) c.toJson()]));
+    notifyListeners();
+  }
+
+  void _cargarEnVivoPropios() {
+    enVivoPropios.clear();
+    try {
+      final j = jsonDecode(prefs.getString(claveEnVivoPropios) ?? '[]');
+      if (j is! List) return;
+      for (final c in j) {
+        if (c is! Map || c['id'] is! String || c['titulo'] is! String || c['url'] is! String) continue;
+        if (normalizarUrlYoutube(c['url'] as String) == null) continue;
+        enVivoPropios.add(CanalEnVivo(
+          id: c['id'] as String,
+          titulo: c['titulo'] as String,
+          url: c['url'] as String,
+          grupo: c['grupo'] is String ? c['grupo'] as String : 'otros',
+          portada: null,
+          propio: true,
+        ));
+      }
+    } catch (_) {
+      enVivoPropios.clear(); // si el texto guardado está roto, se empieza de cero sin romper la app
+    }
+  }
 
   static Future<bool> _noAbre(String url) async => false;
 
@@ -157,6 +224,14 @@ class EstadoApp extends ChangeNotifier {
         peliculas = null; // sin catálogo, el botón de pelis no se muestra
       }
     }
+    if (cargarEnVivo != null) {
+      try {
+        _enVivoBase = CatalogoEnVivo.tryParse(await cargarEnVivo!());
+      } catch (_) {
+        _enVivoBase = null;
+      }
+    }
+    _cargarEnVivoPropios();
     notifyListeners();
     unawaited(refrescar());
     _timer?.cancel();

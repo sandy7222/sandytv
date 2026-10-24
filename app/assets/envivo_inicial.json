@@ -1,0 +1,11 @@
+{
+  "formato": 1,
+  "version": "vacio",
+  "grupos": [
+    { "id": "noticias", "nombre": "Noticias" },
+    { "id": "deportes", "nombre": "Deportes" },
+    { "id": "musica", "nombre": "Música" },
+    { "id": "otros", "nombre": "Otros" }
+  ],
+  "canales": []
+}
