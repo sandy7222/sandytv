@@ -427,10 +427,20 @@
 
   /* ---------- Cartelera ---------- */
   pintarReloj();
-  fetch('../cartelera.json').then(function (r) {
-    // La respuesta de GitHub trae su hora exacta: sirve para corregir el reloj del televisor.
+  // La página puede estar en GitHub Pages (junto a la cartelera) o en otra dirección (por ejemplo sandytv.vercel.app):
+  // en ese caso la cartelera se baja de GitHub Pages, que permite leerla desde cualquier sitio.
+  var enGithub = location.hostname.indexOf('github.io') >= 0;
+  var URL_CARTELERA = enGithub ? '../cartelera.json' : 'https://sandy7222.github.io/sandytv/cartelera.json';
+  function sincronizarHora(r) {
+    // Toda respuesta HTTP trae la hora exacta del servidor en el encabezado Date: sirve para corregir el reloj del televisor.
     var f = r.headers.get('date'); var t = f ? Date.parse(f) : NaN;
-    if (!isNaN(t)) { desfase = t - Date.now(); sincronizado = true; pintarReloj(); }
+    if (!isNaN(t)) { desfase = t - Date.now(); sincronizado = true; pintarReloj(); return true; }
+    return false;
+  }
+  // Desde otro sitio, el navegador no deja leer la hora de la respuesta de GitHub; se la pide al propio servidor de la página.
+  if (!enGithub) { try { fetch('../manifest.json', { method: 'HEAD', cache: 'no-store' }).then(sincronizarHora).catch(function () {}); } catch (e) {} }
+  fetch(URL_CARTELERA).then(function (r) {
+    if (enGithub) sincronizarHora(r);
     return r.json();
   }).then(function (c) {
     categorias = c.categorias || [];
