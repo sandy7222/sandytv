@@ -20,10 +20,10 @@ los botones NO llegan como teclas.** Resultado de la sonda (huella de cada botó
 
 | Botón | Qué le llega a la página | Se usa en SandyTV |
 |---|---|---|
-| **Rojo** | tecla `ColorF0Red`, keyCode **403** | canal **anterior** |
-| **Amarillo** | tecla `ColorF2Yellow`, keyCode **405** | canal **siguiente** |
-| **Azul** | tecla `ColorF3Blue`, keyCode **406** | cambiar **formato** de imagen |
-| **Verde** | no se detectó en la sonda (código estándar 404) | agregar o quitar el canal de la lista (**favorito**) |
+| **Rojo** (dibujo ◀◀) | tecla `ColorF0Red`, keyCode **403** | canal **anterior** |
+| **Amarillo** (dibujo ▶) | tecla `ColorF2Yellow`, keyCode **405** | cambiar **formato** de imagen |
+| **Azul** (dibujo ▶▶) | tecla `ColorF3Blue`, keyCode **406** | canal **siguiente** |
+| **Verde** (dibujo ⏸) | no se detectó en la sonda (código estándar 404) | agregar o quitar el canal de la lista (**favorito**) |
 | **CH +** | rueda hacia arriba (`wheel deltaY=-50`) y scroll hacia arriba (200 px) | canal siguiente (sin confirmar en el reproductor) |
 | **CH −** | **solo foco y puntero**, sin rueda hacia abajo | **no se puede distinguir** (sin confirmar) |
 | **▲** | rueda `deltaY=-50` y scroll hacia arriba (50 px) | canal siguiente (ver abajo) |
@@ -40,7 +40,9 @@ piso) cambia de canal**. Por eso en el reproductor hay un botón **"↕ ▲▼ y
 
 ### Volumen, silencio y aspecto
 - **Volumen y silencio** funcionan **solos**: los maneja el televisor, la página no hace nada.
-- **Formato de imagen** (original / estirado 16:9 / zoom): botón **azul** o el botón en pantalla.
+- **Formato de imagen** (original / estirado 16:9 / zoom): botón **amarillo** o el botón en pantalla.
+
+> **Nota (2026-10-26):** en el control del dueño los colores tienen dibujo de reproductor (rojo ◀◀, verde ⏸, amarillo ▶, azul ▶▶), por eso se reasignaron: rojo/azul = canal anterior/siguiente, amarillo = formato.
 
 ## 3. Cómo se descubrió (para repetirlo con otro televisor)
 
