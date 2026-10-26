@@ -79,9 +79,13 @@
   #barra .num { font-size:38px; font-weight:800; } #barra .det { color:var(--acento); font-size:18px; min-height:24px; }
   #logoEsq { position:absolute; top:24px; right:32px; width:190px; height:100px; background:var(--sup); border-radius:14px; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .25s; pointer-events:none; }
   #logoEsq.ver { opacity:1; } #logoEsq img { max-width:90%; max-height:90%; }
-  /* Dos reproductores de YouTube: el canal nuevo carga escondido y recién cuando está en marcha se muestra (como el cambio de canal de un televisor). */
-  .ytf { position:absolute; inset:0; width:100%; height:100%; border:0; background:#000; display:none; opacity:0; transition:opacity .3s; }
-  .ytf.vivo { opacity:1; z-index:0; }
+  /* Un solo reproductor de YouTube y una cortina negra: al cambiar de canal se tapa todo (el televisor no aguanta dos videos a la vez
+     y se veía un destello blanco) y se destapa cuando el canal nuevo ya está andando. */
+  .ytf { position:absolute; inset:0; width:100%; height:100%; border:0; background:#000; display:none; }
+  .ytf.oculto { visibility:hidden; }
+  #barra, #logoEsq, #numero { z-index:3; }
+  #cortina { position:absolute; inset:0; background:#000; z-index:2; opacity:0; pointer-events:none; transition:opacity .4s; }
+  #cortina.tapa { opacity:1; transition:none; }
   /* Franja transparente arriba: el mouse no avisa nada mientras pasa sobre el video de YouTube, así que la barra se despierta con esta franja. */
   #sensor { position:absolute; top:0; left:0; right:0; height:120px; z-index:1; display:none; }
   #reproductor.esyt .ytf, #reproductor.esyt #sensor { display:block; }
@@ -128,7 +132,7 @@
 <div id="reproductor">
   <video id="video" playsinline></video>
   <iframe id="yt" class="ytf" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="YouTube"></iframe>
-  <iframe id="yt2" class="ytf" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="YouTube"></iframe>
+  <div id="cortina"></div>
   <div id="sensor"></div>
   <div id="logoEsq"><img id="logoImg" alt=""></div>
   <div id="controles">
@@ -445,24 +449,40 @@
   var saltos = 0;
 
   /* ---------- Vivos de YouTube sin destello: el nuevo carga escondido y se muestra cuando ya está andando ---------- */
-  var ytViva = null; // el reproductor que se está viendo
+  var timerCortina = null;
   function apagarYt() {
-    ['yt', 'yt2'].forEach(function (id) { var f = $(id); f.onload = null; f.className = 'ytf'; f.src = 'about:blank'; });
-    ytViva = null;
+    var f = $('yt'); f.onload = null; f.className = 'ytf'; f.src = 'about:blank';
+    clearTimeout(timerCortina); $('cortina').className = '';
   }
+  var ytCargado = false; // el reproductor nuevo ya cargó (los avisos anteriores son del canal viejo y no valen)
+  var ytEsperando = null; // función que destapa, mientras se espera el aviso de YouTube
+  // YouTube avisa por mensaje cuando el video está en marcha (estado 1 = reproduciendo); hay que "suscribirse" una vez que cargó el reproductor.
+  window.addEventListener('message', function (e) {
+    if (!ytEsperando || !ytCargado || !e.origin || e.origin.indexOf('youtube.com') < 0) return;
+    var d = e.data; if (typeof d === 'string') { try { d = JSON.parse(d); } catch (x) { return; } }
+    if (!d) return;
+    var estado = d.event === 'onStateChange' ? d.info : (d.info && d.info.playerState);
+    det('YouTube avisa: ' + d.event + ' estado=' + estado);
+    if (estado === 1) { var f = ytEsperando; ytEsperando = null; setTimeout(f, 500); }
+  });
   function mostrarYt(url, mio) {
-    var nuevo = ytViva === $('yt') ? $('yt2') : $('yt'), viejo = ytViva;
-    nuevo.onload = function () {
-      nuevo.onload = null;
-      // un respiro para que el video de YouTube arranque antes de mostrarlo
-      setTimeout(function () {
-        if (mio !== intento) return;
-        nuevo.className = 'ytf vivo'; ytViva = nuevo;
-        if (viejo) { viejo.className = 'ytf'; setTimeout(function () { if (ytViva !== viejo) { viejo.onload = null; viejo.src = 'about:blank'; } }, 400); }
-      }, 1500);
+    var f = $('yt'), c = $('cortina');
+    clearTimeout(timerCortina);
+    c.className = 'tapa';           // se tapa todo ya mismo, antes de tocar el reproductor
+    f.className = 'ytf oculto';     // y el reproductor viejo no se ve mientras cambia
+    function destapar() {
+      if (mio !== intento) return;
+      ytEsperando = null; clearTimeout(timerCortina); f.onload = null; f.className = 'ytf'; c.className = '';
+    }
+    ytEsperando = destapar; ytCargado = false;
+    f.onload = function () {
+      f.onload = null; ytCargado = true;
+      try { f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }), '*'); } catch (x) {}
+      // por si YouTube no avisa (o ya había empezado), se destapa igual después de un rato
+      timerCortina = setTimeout(destapar, 5000);
     };
-    nuevo.className = 'ytf';
-    nuevo.src = url;
+    timerCortina = setTimeout(destapar, 12000); // y si el canal ni carga, no queda tapado para siempre
+    f.src = url;
   }
 
   function reproducir(ch, dir) {
@@ -482,7 +502,7 @@
     // Vivo de YouTube: se ve incrustado; no se toca nada de su reproductor, el canal se cambia con las flechas de la pantalla.
     $('reproductor').className = (ch.yt || ch.ytVideo) ? 'activo esyt' : 'activo';
     if (ch.yt || ch.ytVideo) {
-      mostrarYt((ch.yt ? 'https://www.youtube.com/embed/live_stream?channel=' + encodeURIComponent(ch.yt) : 'https://www.youtube.com/embed/' + encodeURIComponent(ch.ytVideo) + '?') + '&autoplay=1&playsinline=1&rel=0&iv_load_policy=3', mio);
+      mostrarYt((ch.yt ? 'https://www.youtube.com/embed/live_stream?channel=' + encodeURIComponent(ch.yt) : 'https://www.youtube.com/embed/' + encodeURIComponent(ch.ytVideo) + '?') + '&autoplay=1&playsinline=1&rel=0&iv_load_policy=3&enablejsapi=1&origin=' + encodeURIComponent(location.origin), mio);
       delete fallos[ch.id]; saltos = 0; mostrarBarra(ch, 'En vivo desde YouTube'); return;
     }
     var n = 0;
