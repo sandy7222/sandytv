@@ -31,7 +31,7 @@ los botones NO llegan como teclas.** Resultado de la sonda (huella de cada botó
 | **◀ ▶** | rueda con `deltaY=0` | nada |
 | **VOL +, VOL −, Silencio** | la página pierde el foco una vez (barra del televisor); **no se distinguen entre sí** | los maneja el televisor solo |
 | **OK** | es el **clic**: no se puede grabar como tecla | clic |
-| **Atrás** | cierra o vuelve el navegador | — |
+| **Atrás** | tecla `Backspace` (keyCode 8) y además el navegador vuelve (se vio con el detective, 2026-10-26) | volver a la lista |
 | **Cualquier botón** | además deja `mousemove` (el puntero aparece) y `blur`/`focus`: **es ruido** | — |
 
 ### Comportamiento de ▲ y ▼ (confirmado por el dueño)
@@ -55,6 +55,7 @@ piso) cambia de canal**. Por eso en el reproductor hay un botón **"↕ ▲▼ y
 
 ## 4. Pendiente
 
-- Confirmar **CH +** y **CH −** dentro del reproductor: usar el botón **"🔬 Detective"** de la página (anota en pantalla todo lo que llega; ver `docs/ESTADO.md`). Ya se sabe que rojo, amarillo, azul y ▲▼ andan también con YouTube en pantalla.
+- **CH + / CH − dentro del reproductor: CONFIRMADO que no llegan (2026-10-26).** Con el botón **"🔬 Detective"** de la página (anota en pantalla todo lo que le llega) el dueño apretó CH+ y CH− mirando un canal y **no se registra nada**; en cambio las teclas de colores sí. El televisor se queda con esos dos botones. Desde una página web **no se pueden usar**: solo una app oficial de Titan OS (DevView/Partner Portal, solicitud pendiente) podría recibirlos. Rojo, amarillo, azul y ▲▼ andan también con YouTube en pantalla.
+- Por probar con el detective (puede haber más botones que lleguen): números 0–9, INFO, GUÍA, MENÚ, OK largo, ◀ ▶, play/pausa/avance/retroceso.
 - Probar el **verde** (favorito) con un canal.
 - Una app web real de Titan OS (DevView) recibiría teclas como las apps oficiales: depende de la aprobación.
