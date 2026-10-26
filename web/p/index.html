@@ -50,6 +50,13 @@
   .acciones { flex:none; display:flex; flex-direction:column; gap:4px; }
   .acciones button { flex:1; padding:0 14px; font-size:24px; color:var(--acento); }
   .acciones .tacho { font-size:20px; }
+  #panelYt { display:none; position:absolute; left:0; top:0; right:0; bottom:0; background:#0B1020ee; z-index:5; align-items:center; justify-content:center; }
+  #panelYt.ver { display:flex; }
+  #panelYt .caja { background:var(--sup); border-radius:16px; padding:26px 32px; width:80%; max-width:900px; }
+  #panelYt h2 { margin:0 0 6px; font-size:26px; } #panelYt p { margin:0 0 14px; color:var(--suave); font-size:16px; }
+  #panelYt input { width:100%; font-size:20px; margin-bottom:12px; padding:10px 14px; }
+  #panelYt .msg { color:#FCA5A5; min-height:22px; font-size:16px; margin-bottom:8px; }
+  #panelYt button { font-size:20px; padding:10px 26px; margin-right:12px; }
   #nav { display:flex; align-items:center; justify-content:center; gap:16px; padding:8px 0 0; }
   #nav button { font-size:20px; padding:8px 26px; } #nav span { font-size:18px; color:var(--suave); min-width:170px; text-align:center; }
   body.sincursor, body.sincursor * { cursor:none !important; }
@@ -96,12 +103,20 @@
 <div id="inicio">
   <div id="cab">
     <div class="logo">Sandy<b>TV</b></div>
-    <span><button id="bTamano" type="button">🔎 Tamaño: grande</button><button id="bControl" type="button" onclick="location.href='control/'">🎛 Aprender el control</button><button id="bReloj" type="button">🕒 Reloj: sí</button></span>
+    <span><button id="bTamano" type="button">🔎 Tamaño: grande</button><button id="bYt" type="button">＋ Canal de YouTube</button><button id="bControl" type="button" onclick="location.href='control/'">🎛 Aprender el control</button><button id="bReloj" type="button">🕒 Reloj: sí</button></span>
   </div>
   <div id="listasBar"></div>
   <div id="cats"></div>
   <div id="lista"><div>Cargando la cartelera…</div></div>
   <div id="nav"></div>
+  <div id="panelYt"><div class="caja">
+  <h2>＋ Agregar un vivo de YouTube</h2>
+  <p>En YouTube tocá Compartir y copiá el link (youtu.be/…), o Insertar y copiá el código. Pegalo acá.</p>
+  <input id="ytNombre" placeholder="Nombre del canal (ej.: TN)" maxlength="40">
+  <input id="ytLink" placeholder="Link o código de YouTube">
+  <div class="msg" id="ytMsg"></div>
+  <button id="ytGuardar" type="button">Guardar canal</button><button id="ytCancelar" type="button">Cancelar</button>
+</div></div>
   <div id="pie">Tocá un canal para verlo. La ☆ lo agrega o quita de tu lista. Dentro del canal: CH+/CH− y ▲ ▼ del control, el botón AMARILLO (siguiente) y el ROJO (anterior), o los botones de arriba. Atrás vuelve acá.<span id="medida"></span></div>
 </div>
 
@@ -340,7 +355,7 @@
       ac.appendChild(e);
       if (!l) { // el tachito solo en "Todos los canales": saca el canal de la vista (se restaura desde el botón de arriba)
         var x = document.createElement('button'); x.type = 'button'; x.className = 'tacho'; x.textContent = '🗑'; x.title = 'Sacar este canal de la vista';
-        x.onclick = function () { ocultar(ch); dibujarCategorias(); dibujarLista(); };
+        x.onclick = function () { if (ch.propio) borrarPropio(ch); else ocultar(ch); dibujarListas(); dibujarCategorias(); dibujarLista(); };
         ac.appendChild(x);
       }
       fila.appendChild(b); fila.appendChild(ac); cont.appendChild(fila);
@@ -437,9 +452,9 @@
     pintarFav();
     mostrarBarra(ch, 'Sintonizando…');
     // Vivo de YouTube: se ve incrustado; no se toca nada de su reproductor, el canal se cambia con las flechas de la pantalla.
-    $('reproductor').className = ch.yt ? 'activo esyt' : 'activo';
-    if (ch.yt) {
-      $('yt').src = 'https://www.youtube.com/embed/live_stream?channel=' + encodeURIComponent(ch.yt) + '&autoplay=1&playsinline=1&rel=0&iv_load_policy=3';
+    $('reproductor').className = (ch.yt || ch.ytVideo) ? 'activo esyt' : 'activo';
+    if (ch.yt || ch.ytVideo) {
+      $('yt').src = (ch.yt ? 'https://www.youtube.com/embed/live_stream?channel=' + encodeURIComponent(ch.yt) : 'https://www.youtube.com/embed/' + encodeURIComponent(ch.ytVideo) + '?') + '&autoplay=1&playsinline=1&rel=0&iv_load_policy=3';
       delete fallos[ch.id]; saltos = 0; mostrarBarra(ch, 'En vivo desde YouTube'); return;
     }
     var n = 0;
@@ -582,6 +597,49 @@
   var enLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1'; // para probar en la PC con la cartelera de al lado
   var URL_CARTELERA = (enGithub || enLocal) ? '../cartelera.json' : 'https://sandy7222.github.io/sandytv/cartelera.json';
   BASE_LOGOS = URL_CARTELERA.replace('cartelera.json', '');
+  /* ---------- Vivos de YouTube agregados por el dueño (se guardan en este televisor) ---------- */
+  var LS_YT = 'sandytv_yt_propios';
+  function ytPropios() { try { var j = JSON.parse(leer(LS_YT)); return j && j.length !== undefined ? j : []; } catch (e) { return []; } }
+  // Del link de "Compartir" (youtu.be/…), del código de "Insertar" (embed/…) o de una dirección de YouTube saca el código del video o del canal.
+  function leerYoutube(t) {
+    t = String(t || '');
+    var c = t.match(/youtube\.com\/channel\/(UC[A-Za-z0-9_-]{22})/);
+    if (c) return { canal: c[1] };
+    var v = t.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:embed\/|live\/|shorts\/)|[?&]v=)([A-Za-z0-9_-]{11})/);
+    return v ? { video: v[1] } : null;
+  }
+  function canalPropio(r) {
+    var clave = r.canal || r.video;
+    return { id: 'ytp.' + clave, numero: 0, nombre: r.nombre, emisora: 'YouTube', categoria: 'argentina', logo: '', yt: r.canal || '', ytVideo: r.video || '', propio: true, enlaces: [{ url: 'https://www.youtube.com/', puntaje: 0 }] };
+  }
+  function sumarPropios() {
+    var max = 0; canales.forEach(function (x) { if (x.numero > max) max = x.numero; });
+    ytPropios().forEach(function (r) { var c = canalPropio(r); c.numero = ++max; canales.push(c); });
+  }
+  function abrirPanelYt() { $('ytNombre').value = ''; $('ytLink').value = ''; $('ytMsg').textContent = ''; $('panelYt').className = 'ver'; }
+  function cerrarPanelYt() { $('panelYt').className = ''; }
+  $('bYt').onclick = abrirPanelYt;
+  $('ytCancelar').onclick = cerrarPanelYt;
+  $('ytGuardar').onclick = function () {
+    var nombre = $('ytNombre').value.replace(/^\s+|\s+$/g, ''), r = leerYoutube($('ytLink').value);
+    if (!nombre) { $('ytMsg').textContent = 'Poné un nombre para el canal.'; return; }
+    if (!r) { $('ytMsg').textContent = 'No encontré un link de YouTube. Usá Compartir (youtu.be/…) o Insertar.'; return; }
+    var clave = r.canal || r.video, lista = ytPropios();
+    if (lista.some(function (x) { return (x.canal || x.video) === clave; })) { $('ytMsg').textContent = 'Ese canal ya está agregado.'; return; }
+    lista.push({ nombre: nombre, canal: r.canal || '', video: r.video || '' });
+    guardar(LS_YT, JSON.stringify(lista));
+    var c = canalPropio({ nombre: nombre, canal: r.canal, video: r.video });
+    var max = 0; canales.forEach(function (x) { if (x.numero > max) max = x.numero; }); c.numero = max + 1;
+    canales.push(c);
+    var d = destino(); if (d && !enLista(d, c)) alternarEnLista(d, c); // queda en tu lista, listo para verlo
+    cerrarPanelYt(); catActual = 'argentina'; refrescar();
+  };
+  function borrarPropio(ch) {
+    var clave = ch.yt || ch.ytVideo;
+    guardar(LS_YT, JSON.stringify(ytPropios().filter(function (x) { return (x.canal || x.video) !== clave; })));
+    canales = canales.filter(function (x) { return x !== ch; });
+    datos.listas.forEach(function (l) { var i = l.canales.indexOf(ch.id); if (i >= 0) l.canales.splice(i, 1); }); guardarListas();
+  }
   var URL_YOUTUBE = URL_CARTELERA.replace('cartelera.json', 'youtube.json');
   function esYoutube(u) { return /^https:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(u || ''); }
   // Los vivos de YouTube no se pueden reproducir como video común: se sacan los canales que solo tienen enlaces de YouTube
@@ -608,7 +666,7 @@
   }).then(function (c) {
     categorias = c.categorias || [];
     canales = (c.canales || []).filter(function (x) { return x.enlaces && x.enlaces.some(function (e) { return esHttps(e.url); }); });
-    return fetch(URL_YOUTUBE).then(function (r) { return r.json(); }).catch(function () { return { canales: [] }; }).then(function (y) { sumarYoutube(y); return c; });
+    return fetch(URL_YOUTUBE).then(function (r) { return r.json(); }).catch(function () { return { canales: [] }; }).then(function (y) { sumarYoutube(y); sumarPropios(); return c; });
   }).then(function (c) {
     if (!canales.some(function (x) { return x.categoria === catActual; }) && canales.length) catActual = canales[0].categoria;
     cargarListas();
