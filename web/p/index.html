@@ -42,16 +42,22 @@
   #cab { display:flex; align-items:center; justify-content:space-between; }
   .logo { font-size:34px; font-weight:800; } .logo b { background:var(--acento); color:var(--fondo); padding:0 9px; border-radius:7px; margin-left:5px; }
   #listasBar, #cats { display:flex; flex-wrap:wrap; gap:10px; margin:12px 0 0; align-items:center; }
-  #listasBar button, #cats button { font-size:19px; padding:8px 14px; }
-  #listasBar .sep { color:var(--suave); font-size:14px; margin-left:10px; }
-  #lista { flex:1; overflow-y:auto; display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:12px; align-content:start; padding:14px 8px 0 0; }
+  #listasBar button, #cats button { font-size:15px; padding:6px 11px; border-width:2px; }
+  #listasBar .sep { color:var(--suave); font-size:12px; margin-left:8px; }
+  #listasBar input { font-size:13px; padding:6px 10px; width:190px; }
+  #lista { flex:1; overflow:hidden; display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:12px; align-content:start; padding:14px 8px 0 0; }
   .fila { display:flex; gap:6px; }
+  .acciones { flex:none; display:flex; flex-direction:column; gap:4px; }
+  .acciones button { flex:1; padding:0 14px; font-size:24px; color:var(--acento); }
+  .acciones .tacho { font-size:20px; }
+  #nav { display:flex; align-items:center; justify-content:center; gap:16px; padding:8px 0 0; }
+  #nav button { font-size:20px; padding:8px 26px; } #nav span { font-size:18px; color:var(--suave); min-width:170px; text-align:center; }
+  body.sincursor, body.sincursor * { cursor:none !important; }
   .canal { flex:1; display:flex; align-items:center; gap:12px; text-align:left; padding:10px 14px; min-width:0; }
-  .canal img, .canal .sinlogo { width:104px; height:64px; object-fit:contain; background:#fff2; border-radius:8px; flex:none; }
+  .canal img, .canal .sinlogo { width:96px; height:60px; object-fit:contain; background:#fff2; border-radius:8px; flex:none; }
   .canal .sinlogo { display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:800; color:var(--acento); background:#22D3EE22; }
   .canal span { font-size:22px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .canal small { color:var(--suave); display:block; font-size:16px; font-weight:400; }
-  .estrella { flex:none; font-size:28px; padding:8px 16px; color:var(--acento); }
   #pie { color:var(--suave); font-size:15px; padding-top:8px; }
 
   /* Reproductor a pantalla completa */
@@ -90,7 +96,8 @@
   <div id="listasBar"></div>
   <div id="cats"></div>
   <div id="lista"><div>Cargando la cartelera…</div></div>
-  <div id="pie">Tocá un canal para verlo. La ☆ lo agrega o quita de tu lista. Dentro del canal: CH+/CH− y ▲ ▼ del control, el botón AMARILLO (siguiente) y el ROJO (anterior), o los botones de arriba. Atrás vuelve acá.</div>
+  <div id="nav"></div>
+  <div id="pie">Tocá un canal para verlo. La ☆ lo agrega o quita de tu lista. Dentro del canal: CH+/CH− y ▲ ▼ del control, el botón AMARILLO (siguiente) y el ROJO (anterior), o los botones de arriba. Atrás vuelve acá.<span id="medida"></span></div>
 </div>
 
 <div id="reproductor">
@@ -147,13 +154,18 @@
     var p = (nombre || '?').replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ0-9 ]/g, ' ').split(/\s+/).filter(Boolean);
     return ((p[0] || '?').charAt(0) + (p.length > 1 ? p[1].charAt(0) : (p[0] || '').charAt(1))).toUpperCase();
   }
+  var BASE_LOGOS = '';
   function logoDe(ch) {
     function insignia() { var s = document.createElement('div'); s.className = 'sinlogo'; s.textContent = iniciales(ch.nombre); return s; }
-    if (!ch.logo) return insignia();
+    if (!ch.logo && !ch.logoLocal) return insignia();
     var im = document.createElement('img');
     im.alt = ''; im.decoding = 'async'; im.referrerPolicy = 'no-referrer';
-    im.onerror = function () { if (im.parentNode) im.parentNode.replaceChild(insignia(), im); };
-    im.src = ch.logo;
+    // Primero la copia chica guardada en nuestra página (el televisor no baja las imágenes de imgur); si falla, la original; si falla, las iniciales.
+    var cola = [];
+    if (ch.logoLocal) cola.push(BASE_LOGOS + ch.logoLocal);
+    if (ch.logo) cola.push(ch.logo);
+    im.onerror = function () { var u = cola.shift(); if (u) im.src = u; else if (im.parentNode) im.parentNode.replaceChild(insignia(), im); };
+    im.onerror();
     return im;
   }
 
@@ -163,10 +175,12 @@
   function aplicarTamano() {
     var z = Math.max(1, window.innerWidth / TAMANOS[tamanoActual()]);
     var el = $('inicio');
-    el.style.width = (window.innerWidth / z) + 'px';
+    el.style.width = (window.innerWidth / z * 0.94) + 'px';
     el.style.height = (window.innerHeight / z) + 'px';
     el.style.transform = z === 1 ? 'none' : 'scale(' + z + ')';
     var b = $('bTamano'); if (b) b.textContent = '🔎 Tamaño: ' + tamanoActual();
+    var m = $('medida'); if (m) m.textContent = ' · pantalla ' + window.innerWidth + '×' + window.innerHeight + ' (x' + Math.round(z * 100) / 100 + ')';
+    if (canales.length) dibujarLista();
   }
   window.addEventListener('resize', aplicarTamano);
 
@@ -189,6 +203,16 @@
   $('bRelojP').onclick = alternarReloj;
   setInterval(pintarReloj, 1000);
 
+  /* ---------- El puntero se esconde solo a los 30 segundos sin moverse ---------- */
+  var timerCursor = null;
+  function verCursor() {
+    document.body.classList.remove('sincursor');
+    if (timerCursor) clearTimeout(timerCursor);
+    timerCursor = setTimeout(function () { document.body.classList.add('sincursor'); }, 30000);
+  }
+  ['mousemove', 'mousedown', 'keydown', 'wheel'].forEach(function (ev) { document.addEventListener(ev, verCursor, true); });
+  verCursor();
+
   /* ---------- Listas de favoritos ---------- */
   var datos = { fijada: null, listas: [] };
   var activaId = null; // lista que se está viendo (null = todos los canales)
@@ -209,7 +233,12 @@
   function destino() { return activa() || (datos.fijada && listaPorId(datos.fijada)) || datos.listas[0] || null; }
   function canalPorId(id) { for (var i = 0; i < canales.length; i++) if (canales[i].id === id) return canales[i]; return null; }
   function canalesDeLista(l) { var r = []; l.canales.forEach(function (id) { var c = canalPorId(id); if (c) r.push(c); }); return r; }
-  function canalesActivos() { var l = activa(); var c = l ? canalesDeLista(l) : []; return c.length ? c : canales; }
+  /* Canales que se sacaron de la vista con el tachito (se pueden restaurar) */
+  var LS_OCULTOS = 'sandytv_ocultos';
+  function ocultos() { try { var j = JSON.parse(leer(LS_OCULTOS)); return j && j.length !== undefined ? j : []; } catch (e) { return []; } }
+  function ocultar(ch) { var o = ocultos(); if (o.indexOf(ch.id) < 0) o.push(ch.id); guardar(LS_OCULTOS, JSON.stringify(o)); }
+  function visibles() { var o = ocultos(); return canales.filter(function (c) { return o.indexOf(c.id) < 0; }); }
+  function canalesActivos() { var l = activa(); var c = l ? canalesDeLista(l) : []; if (c.length) return c; var v = visibles(); return v.length ? v : canales; }
   function usaLista() { var l = activa(); return !!(l && canalesDeLista(l).length); }
   function numeroVisible(ch) {
     if (!usaLista()) return ch.numero;
@@ -269,34 +298,60 @@
   }
 
   /* ---------- Pantalla de elegir canal ---------- */
-  function refrescar() { dibujarListas(); dibujarCategorias(); dibujarLista(); }
+  var pagina = 0, porPagina = 9;
+  function refrescar() { pagina = 0; dibujarListas(); dibujarCategorias(); dibujarLista(); }
   function dibujarCategorias() {
     var c = $('cats'); c.innerHTML = '';
     if (activa()) return; // dentro de una lista no se muestran las categorías
+    var nOc = ocultos().length;
+    if (nOc) c.appendChild(btn('↩ Restaurar ocultos (' + nOc + ')', false, function () { guardar(LS_OCULTOS, '[]'); refrescar(); }));
     categorias.forEach(function (g) {
       if (!canales.some(function (x) { return x.categoria === g.id; })) return;
       c.appendChild(btn(g.nombre, g.id === catActual, function () { catActual = g.id; refrescar(); }));
     });
   }
-  function dibujarLista() {
-    var cont = $('lista'); cont.innerHTML = '';
+  function dibujarLista(sinMedir) {
+    var cont = $('lista'); cont.innerHTML = ''; $('nav').innerHTML = '';
     var l = activa();
-    var mostrar = l ? canalesDeLista(l) : canales.filter(function (ch) { return ch.categoria === catActual; });
+    var mostrar = l ? canalesDeLista(l) : visibles().filter(function (ch) { return ch.categoria === catActual; });
     if (l && !mostrar.length) { cont.textContent = 'Esta lista está vacía. Elegí "Todos los canales" y tocá la ☆ de los canales que quieras agregar.'; return; }
     var dest = destino();
-    mostrar.forEach(function (ch) {
+    var paginas = Math.max(1, Math.ceil(mostrar.length / porPagina));
+    if (pagina >= paginas) pagina = paginas - 1;
+    mostrar.slice(pagina * porPagina, (pagina + 1) * porPagina).forEach(function (ch) {
       var fila = document.createElement('div'); fila.className = 'fila';
       var b = document.createElement('button'); b.type = 'button'; b.className = 'canal';
       b.appendChild(logoDe(ch));
       var t = document.createElement('span'); t.textContent = ch.nombre;
       var s = document.createElement('small'); s.textContent = 'Canal ' + (l ? mostrar.indexOf(ch) + 1 : ch.numero); t.appendChild(s); b.appendChild(t);
       b.onclick = function () { video.muted = false; pantallaCompleta(); reproducir(ch); };
+      var ac = document.createElement('div'); ac.className = 'acciones';
       var e = document.createElement('button'); e.type = 'button'; e.className = 'estrella';
       e.textContent = enLista(dest, ch) ? '★' : '☆';
       e.title = dest ? (enLista(dest, ch) ? 'Quitar de "' + dest.titulo + '"' : 'Agregar a "' + dest.titulo + '"') : '';
-      e.onclick = function () { alternarEnLista(dest, ch); refrescar(); };
-      fila.appendChild(b); fila.appendChild(e); cont.appendChild(fila);
+      e.onclick = function () { alternarEnLista(dest, ch); dibujarListas(); dibujarLista(); };
+      ac.appendChild(e);
+      if (!l) { // el tachito solo en "Todos los canales": saca el canal de la vista (se restaura desde el botón de arriba)
+        var x = document.createElement('button'); x.type = 'button'; x.className = 'tacho'; x.textContent = '🗑'; x.title = 'Sacar este canal de la vista';
+        x.onclick = function () { ocultar(ch); dibujarCategorias(); dibujarLista(); };
+        ac.appendChild(x);
+      }
+      fila.appendChild(b); fila.appendChild(ac); cont.appendChild(fila);
     });
+    // Cuántos canales entran por pantalla: se mide y se vuelve a dibujar si cambia
+    if (!sinMedir && cont.firstChild && cont.firstChild.className === 'fila') {
+      var cols = getComputedStyle(cont).gridTemplateColumns.split(' ').length || 1;
+      var fh = cont.firstChild.offsetHeight + 12;
+      var filas = Math.max(1, Math.floor((cont.clientHeight - 14) / fh));
+      var n = cols * filas;
+      if (n !== porPagina && n > 0) { porPagina = n; dibujarLista(true); return; }
+    }
+    if (paginas > 1) {
+      var nav = $('nav');
+      nav.appendChild(btn('◀ Anteriores', false, function () { pagina = (pagina + paginas - 1) % paginas; dibujarLista(); }));
+      var sp = document.createElement('span'); sp.textContent = 'Página ' + (pagina + 1) + ' de ' + paginas + ' (' + mostrar.length + ' canales)'; nav.appendChild(sp);
+      nav.appendChild(btn('Siguientes ▶', false, function () { pagina = (pagina + 1) % paginas; dibujarLista(); }));
+    }
   }
 
   /* ---------- Formato de imagen (original / estirado 16:9 / zoom), recordado por canal ---------- */
@@ -511,7 +566,9 @@
   // La página puede estar en GitHub Pages (junto a la cartelera) o en otra dirección (por ejemplo sandytv.vercel.app):
   // en ese caso la cartelera se baja de GitHub Pages, que permite leerla desde cualquier sitio.
   var enGithub = location.hostname.indexOf('github.io') >= 0;
-  var URL_CARTELERA = enGithub ? '../cartelera.json' : 'https://sandy7222.github.io/sandytv/cartelera.json';
+  var enLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1'; // para probar en la PC con la cartelera de al lado
+  var URL_CARTELERA = (enGithub || enLocal) ? '../cartelera.json' : 'https://sandy7222.github.io/sandytv/cartelera.json';
+  BASE_LOGOS = URL_CARTELERA.replace('cartelera.json', '');
   function sincronizarHora(r) {
     // Toda respuesta HTTP trae la hora exacta del servidor en el encabezado Date: sirve para corregir el reloj del televisor.
     var f = r.headers.get('date'); var t = f ? Date.parse(f) : NaN;
