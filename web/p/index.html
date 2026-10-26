@@ -57,6 +57,8 @@
   #panelYt input { width:100%; font-size:20px; margin-bottom:12px; padding:10px 14px; }
   #panelYt .msg { color:#FCA5A5; min-height:22px; font-size:16px; margin-bottom:8px; }
   #panelYt button { font-size:20px; padding:10px 26px; margin-right:12px; }
+  #detective { display:none; position:fixed; right:12px; top:12px; width:46vw; max-height:92vh; overflow:hidden; background:#000c; border:3px solid #FACC15; border-radius:12px; padding:10px 14px; z-index:50; font:22px/1.25 monospace; color:#fff; pointer-events:none; }
+  #detective.ver { display:block; } #detective b { color:#FACC15; } #detective i { color:#94A3B8; font-style:normal; }
   #nav { display:flex; align-items:center; justify-content:center; gap:16px; padding:8px 0 0; }
   #nav button { font-size:20px; padding:8px 26px; } #nav span { font-size:18px; color:var(--suave); min-width:170px; text-align:center; }
   body.sincursor, body.sincursor * { cursor:none !important; }
@@ -105,7 +107,7 @@
 <div id="inicio">
   <div id="cab">
     <div class="logo">Sandy<b>TV</b></div>
-    <span><button id="bTamano" type="button">🔎 Tamaño: grande</button><button id="bYt" type="button">＋ Canal de YouTube</button><button id="bControl" type="button" onclick="location.href='control/'">🎛 Aprender el control</button><button id="bReloj" type="button">🕒 Reloj: sí</button></span>
+    <span><button id="bTamano" type="button">🔎 Tamaño: grande</button><button id="bYt" type="button">＋ Canal de YouTube</button><button id="bDet" type="button">🔬 Detective: no</button><button id="bControl" type="button" onclick="location.href='control/'">🎛 Aprender el control</button><button id="bReloj" type="button">🕒 Reloj: sí</button></span>
   </div>
   <div id="listasBar"></div>
   <div id="cats"></div>
@@ -122,6 +124,7 @@
   <div id="pie">Tocá un canal para verlo. La ☆ lo agrega o quita de tu lista. Dentro del canal: CH+/CH− y ▲ ▼ del control, el botón AMARILLO (siguiente) y el ROJO (anterior), o los botones de arriba. Atrás vuelve acá.<span id="medida"></span></div>
 </div>
 
+<div id="detective"></div>
 <div id="reproductor">
   <video id="video" playsinline></video>
   <iframe id="yt" class="ytf" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="YouTube"></iframe>
@@ -136,6 +139,7 @@
     <button id="bRelojP" type="button">🕒</button>
     <button id="bRueda" type="button">↕ ▲▼ y CH: sí</button>
     <button id="bLista" type="button">☰ Lista</button>
+    <button id="bDet2" type="button">🔬 Detective: no</button>
   </div>
   <div class="zona" id="zonaAnt" title="Canal anterior">‹</div>
   <div class="zona" id="zonaSig" title="Canal siguiente">›</div>
@@ -698,6 +702,54 @@
     activaId = datos.fijada; // con una lista fijada, abre directo en esa lista
     refrescar();
   }).catch(function (e) { $('lista').textContent = 'No pude cargar la cartelera: ' + e; });
+
+  /* ---------- Detective: muestra en pantalla todo lo que el televisor le avisa a la página (para descubrir qué manda CH+ y CH−) ---------- */
+  var detOn = false, detLineas = [], detUltimo = 0, detMouse = 0, detScrollY = null;
+  function detPintar() {
+    var d = $('detective'); d.className = detOn ? 'ver' : '';
+    ['bDet', 'bDet2'].forEach(function (id) { var b = $(id); if (b) b.textContent = '🔬 Detective: ' + (detOn ? 'sí' : 'no'); });
+    if (detOn) d.innerHTML = '<b>DETECTIVE</b> <i>apretá un botón, esperá 2 s, otro…</i><br>' + detLineas.join('<br>');
+  }
+  function det(txt) {
+    if (!detOn) return;
+    var ahora = Date.now(), dt = detUltimo ? ((ahora - detUltimo) / 1000).toFixed(1) : '0.0';
+    var salto = detUltimo && ahora - detUltimo > 1500;
+    detUltimo = ahora;
+    var h = new Date(ahora + desfase - 3 * 3600 * 1000);
+    detLineas.push((salto ? '<br>' : '') + '<i>' + dos(h.getUTCMinutes()) + ':' + dos(h.getUTCSeconds()) + ' +' + dt + '</i> ' + txt.replace(/</g, '&lt;'));
+    while (detLineas.length > 16) detLineas.shift();
+    detPintar();
+  }
+  function detAlternar() { detOn = !detOn; detMedia(); detLineas = []; detUltimo = 0; try { window.sessionStorage.setItem('sandytv_detective', detOn ? '1' : '0'); } catch (e) {} detPintar(); if (detOn) det('encendido'); }
+  $('bDet').onclick = detAlternar; $('bDet2').onclick = detAlternar;
+  try { detOn = window.sessionStorage.getItem('sandytv_detective') === '1'; } catch (e) {}
+  detPintar();
+  function dk(e) { return (e.key || '?') + ' · ' + (e.code || '?') + ' · keyCode ' + e.keyCode; }
+  document.addEventListener('keydown', function (e) { det('TECLA abajo: ' + dk(e)); }, true);
+  document.addEventListener('keyup', function (e) { det('tecla arriba: ' + dk(e)); }, true);
+  window.addEventListener('wheel', function (e) { det('RUEDA dy=' + e.deltaY + ' dx=' + e.deltaX + ' modo=' + e.deltaMode); }, true);
+  window.addEventListener('scroll', function () { var y = window.pageYOffset; det('SCROLL y=' + Math.round(y) + (detScrollY === null ? '' : ' (' + (y - detScrollY >= 0 ? '+' : '') + Math.round(y - detScrollY) + ')')); detScrollY = y; }, true);
+  window.addEventListener('blur', function () { det('la página PERDIÓ el foco (¿pasó al video de YouTube o a una barra del televisor?)'); });
+  window.addEventListener('focus', function () { det('la página recuperó el foco'); });
+  document.addEventListener('focusin', function (e) { var t = e.target; det('foco en <' + (t.tagName || '?').toLowerCase() + (t.id ? ' #' + t.id : '') + '>'); }, true);
+  document.addEventListener('visibilitychange', function () { det('visibilidad: ' + document.visibilityState); });
+  document.addEventListener('fullscreenchange', function () { det('pantalla completa: ' + (document.fullscreenElement ? 'sí' : 'no')); });
+  window.addEventListener('resize', function () { det('cambió el tamaño: ' + window.innerWidth + '×' + window.innerHeight); });
+  window.addEventListener('popstate', function () { det('ATRÁS del navegador (popstate)'); });
+  window.addEventListener('beforeunload', function () { det('la página se va a cerrar'); });
+  document.addEventListener('click', function (e) { det('clic (OK) en <' + ((e.target && e.target.tagName) || '?').toLowerCase() + '>'); }, true);
+  document.addEventListener('contextmenu', function () { det('menú contextual'); }, true);
+  document.addEventListener('mousemove', function () { var a = Date.now(); if (a - detMouse > 1200) det('puntero se movió'); detMouse = a; }, true);
+  video.addEventListener('volumechange', function () { det('volumen del video: ' + Math.round(video.volume * 100) + (video.muted ? ' (mudo)' : '')); });
+  // Teclas multimedia del televisor (siguiente/anterior, etc.), si las manda como "sesión multimedia": solo mientras el detective está encendido
+  function detMedia() {
+    try {
+      if (navigator.mediaSession) ['nexttrack', 'previoustrack', 'play', 'pause', 'stop', 'seekbackward', 'seekforward', 'skipad'].forEach(function (a) {
+        try { navigator.mediaSession.setActionHandler(a, detOn ? function () { det('MULTIMEDIA: ' + a); } : null); } catch (e) {}
+      });
+    } catch (e) {}
+  }
+  detMedia();
 
   // Para pruebas desde la consola
   window.sandytv = {

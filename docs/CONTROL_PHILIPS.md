@@ -55,6 +55,6 @@ piso) cambia de canal**. Por eso en el reproductor hay un botón **"↕ ▲▼ y
 
 ## 4. Pendiente
 
-- Confirmar **CH +** y **CH −** dentro del reproductor.
+- Confirmar **CH +** y **CH −** dentro del reproductor: usar el botón **"🔬 Detective"** de la página (anota en pantalla todo lo que llega; ver `docs/ESTADO.md`). Ya se sabe que rojo, amarillo, azul y ▲▼ andan también con YouTube en pantalla.
 - Probar el **verde** (favorito) con un canal.
 - Una app web real de Titan OS (DevView) recibiría teclas como las apps oficiales: depende de la aprobación.
