@@ -77,10 +77,12 @@
   #barra .num { font-size:38px; font-weight:800; } #barra .det { color:var(--acento); font-size:18px; min-height:24px; }
   #logoEsq { position:absolute; top:24px; right:32px; width:190px; height:100px; background:var(--sup); border-radius:14px; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .25s; pointer-events:none; }
   #logoEsq.ver { opacity:1; } #logoEsq img { max-width:90%; max-height:90%; }
-  #yt { position:absolute; inset:0; width:100%; height:100%; border:0; background:#000; display:none; }
+  /* Dos reproductores de YouTube: el canal nuevo carga escondido y recién cuando está en marcha se muestra (como el cambio de canal de un televisor). */
+  .ytf { position:absolute; inset:0; width:100%; height:100%; border:0; background:#000; display:none; opacity:0; transition:opacity .3s; }
+  .ytf.vivo { opacity:1; z-index:0; }
   /* Franja transparente arriba: el mouse no avisa nada mientras pasa sobre el video de YouTube, así que la barra se despierta con esta franja. */
   #sensor { position:absolute; top:0; left:0; right:0; height:120px; z-index:1; display:none; }
-  #reproductor.esyt #yt, #reproductor.esyt #sensor { display:block; }
+  #reproductor.esyt .ytf, #reproductor.esyt #sensor { display:block; }
   #reproductor.esyt video { display:none; }
   #controles { z-index:3; position:absolute; top:24px; left:28px; display:flex; gap:10px; flex-wrap:wrap; max-width:60vw; opacity:0; transition:opacity .25s; }
   #controles.ver { opacity:1; }
@@ -122,7 +124,8 @@
 
 <div id="reproductor">
   <video id="video" playsinline></video>
-  <iframe id="yt" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="YouTube"></iframe>
+  <iframe id="yt" class="ytf" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="YouTube"></iframe>
+  <iframe id="yt2" class="ytf" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="YouTube"></iframe>
   <div id="sensor"></div>
   <div id="logoEsq"><img id="logoImg" alt=""></div>
   <div id="controles">
@@ -437,13 +440,34 @@
   function guardarFallos() { try { window.sessionStorage.setItem('sandytv_fallos', JSON.stringify(fallos)); } catch (e) {} }
   var saltos = 0;
 
+  /* ---------- Vivos de YouTube sin destello: el nuevo carga escondido y se muestra cuando ya está andando ---------- */
+  var ytViva = null; // el reproductor que se está viendo
+  function apagarYt() {
+    ['yt', 'yt2'].forEach(function (id) { var f = $(id); f.onload = null; f.className = 'ytf'; f.src = 'about:blank'; });
+    ytViva = null;
+  }
+  function mostrarYt(url, mio) {
+    var nuevo = ytViva === $('yt') ? $('yt2') : $('yt'), viejo = ytViva;
+    nuevo.onload = function () {
+      nuevo.onload = null;
+      // un respiro para que el video de YouTube arranque antes de mostrarlo
+      setTimeout(function () {
+        if (mio !== intento) return;
+        nuevo.className = 'ytf vivo'; ytViva = nuevo;
+        if (viejo) { viejo.className = 'ytf'; setTimeout(function () { if (ytViva !== viejo) { viejo.onload = null; viejo.src = 'about:blank'; } }, 400); }
+      }, 1500);
+    };
+    nuevo.className = 'ytf';
+    nuevo.src = url;
+  }
+
   function reproducir(ch, dir) {
     if (!ch) return;
     var mio = ++intento;
     if (!dir) { saltos = 0; delete fallos[ch.id]; guardarFallos(); } // si lo elegiste vos, se vuelve a intentar
     // Se corta el video anterior ya mismo: si no, queda la última imagen congelada y parece que el botón no hizo nada.
     limpiar(); video.pause(); video.removeAttribute('src'); try { video.load(); } catch (e) {}
-    $('yt').src = 'about:blank';
+    if (!(ch.yt || ch.ytVideo)) apagarYt();
     var enlaces = ch.enlaces.filter(function (e) { return esHttps(e.url); }).map(function (e) { return e.url; });
     actual = ch;
     aplicarFormato(formatoDe(ch));
@@ -454,7 +478,7 @@
     // Vivo de YouTube: se ve incrustado; no se toca nada de su reproductor, el canal se cambia con las flechas de la pantalla.
     $('reproductor').className = (ch.yt || ch.ytVideo) ? 'activo esyt' : 'activo';
     if (ch.yt || ch.ytVideo) {
-      $('yt').src = (ch.yt ? 'https://www.youtube.com/embed/live_stream?channel=' + encodeURIComponent(ch.yt) : 'https://www.youtube.com/embed/' + encodeURIComponent(ch.ytVideo) + '?') + '&autoplay=1&playsinline=1&rel=0&iv_load_policy=3';
+      mostrarYt((ch.yt ? 'https://www.youtube.com/embed/live_stream?channel=' + encodeURIComponent(ch.yt) : 'https://www.youtube.com/embed/' + encodeURIComponent(ch.ytVideo) + '?') + '&autoplay=1&playsinline=1&rel=0&iv_load_policy=3', mio);
       delete fallos[ch.id]; saltos = 0; mostrarBarra(ch, 'En vivo desde YouTube'); return;
     }
     var n = 0;
@@ -500,7 +524,7 @@
   function ocultarBarra() { ['barra', 'logoEsq', 'controles', 'zonaAnt', 'zonaSig'].forEach(function (id) { $(id).className = $(id).className.replace(' ver', ''); }); }
   function avisar(t) { var a = $('aviso'); a.textContent = t; a.style.display = 'block'; clearTimeout(timerAviso); timerAviso = setTimeout(function () { a.style.display = 'none'; }, 3000); }
   function volverALista() {
-    intento++; limpiar(); video.pause(); video.removeAttribute('src'); $('yt').src = 'about:blank';
+    intento++; limpiar(); video.pause(); video.removeAttribute('src'); apagarYt();
     $('reproductor').className = ''; $('inicio').style.display = 'flex';
     document.body.classList.remove('jugando'); window.scrollTo(0, 0);
     salirPantallaCompleta(); refrescar();
