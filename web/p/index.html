@@ -37,20 +37,22 @@
   input { background:#0F1626; border:2px solid #334155; border-radius:10px; padding:8px 12px; font-size:16px; width:220px; }
 
   /* Pantalla de elegir canal */
-  #inicio { position:absolute; inset:0; display:flex; flex-direction:column; padding:20px 36px 14px; }
+  /* El tamaño real (ancho, alto y escala) lo fija aplicarTamano(): en un televisor se ve de lejos, así que se agranda todo. */
+  #inicio { position:absolute; left:0; top:0; width:100vw; height:100vh; transform-origin:0 0; display:flex; flex-direction:column; padding:20px 36px 14px; }
   #cab { display:flex; align-items:center; justify-content:space-between; }
   .logo { font-size:34px; font-weight:800; } .logo b { background:var(--acento); color:var(--fondo); padding:0 9px; border-radius:7px; margin-left:5px; }
   #listasBar, #cats { display:flex; flex-wrap:wrap; gap:10px; margin:12px 0 0; align-items:center; }
-  #listasBar button, #cats button { font-size:17px; padding:8px 14px; }
+  #listasBar button, #cats button { font-size:19px; padding:8px 14px; }
   #listasBar .sep { color:var(--suave); font-size:14px; margin-left:10px; }
   #lista { flex:1; overflow-y:auto; display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:12px; align-content:start; padding:14px 8px 0 0; }
   .fila { display:flex; gap:6px; }
   .canal { flex:1; display:flex; align-items:center; gap:12px; text-align:left; padding:10px 14px; min-width:0; }
-  .canal img { width:64px; height:40px; object-fit:contain; background:#fff1; border-radius:6px; flex:none; }
-  .canal span { font-size:18px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .canal small { color:var(--suave); display:block; font-size:13px; }
-  .estrella { flex:none; font-size:24px; padding:8px 14px; color:var(--acento); }
-  #pie { color:var(--suave); font-size:14px; padding-top:8px; }
+  .canal img, .canal .sinlogo { width:104px; height:64px; object-fit:contain; background:#fff2; border-radius:8px; flex:none; }
+  .canal .sinlogo { display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:800; color:var(--acento); background:#22D3EE22; }
+  .canal span { font-size:22px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .canal small { color:var(--suave); display:block; font-size:16px; font-weight:400; }
+  .estrella { flex:none; font-size:28px; padding:8px 16px; color:var(--acento); }
+  #pie { color:var(--suave); font-size:15px; padding-top:8px; }
 
   /* Reproductor a pantalla completa */
   #reproductor { position:fixed; inset:0; background:#000; display:none; }
@@ -83,7 +85,7 @@
 <div id="inicio">
   <div id="cab">
     <div class="logo">Sandy<b>TV</b></div>
-    <span><button id="bControl" type="button" onclick="location.href='control/'">🎛 Aprender el control</button><button id="bReloj" type="button">🕒 Reloj: sí</button></span>
+    <span><button id="bTamano" type="button">🔎 Tamaño: grande</button><button id="bControl" type="button" onclick="location.href='control/'">🎛 Aprender el control</button><button id="bReloj" type="button">🕒 Reloj: sí</button></span>
   </div>
   <div id="listasBar"></div>
   <div id="cats"></div>
@@ -140,6 +142,34 @@
     return dos(d.getUTCHours()) + ':' + dos(d.getUTCMinutes());
   }
   function relojVisible() { return leer(LS_RELOJ) !== '0'; }
+  /* ---------- Logo del canal: si no hay o no carga, se muestran las iniciales ---------- */
+  function iniciales(nombre) {
+    var p = (nombre || '?').replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ0-9 ]/g, ' ').split(/\s+/).filter(Boolean);
+    return ((p[0] || '?').charAt(0) + (p.length > 1 ? p[1].charAt(0) : (p[0] || '').charAt(1))).toUpperCase();
+  }
+  function logoDe(ch) {
+    function insignia() { var s = document.createElement('div'); s.className = 'sinlogo'; s.textContent = iniciales(ch.nombre); return s; }
+    if (!ch.logo) return insignia();
+    var im = document.createElement('img');
+    im.alt = ''; im.decoding = 'async'; im.referrerPolicy = 'no-referrer';
+    im.onerror = function () { if (im.parentNode) im.parentNode.replaceChild(insignia(), im); };
+    im.src = ch.logo;
+    return im;
+  }
+
+  /* ---------- Tamaño de la pantalla de elegir canal: en el televisor se mira de lejos ---------- */
+  var TAMANOS = { normal: 1366, grande: 1100, enorme: 900 }; // ancho "lógico" de la lista (más chico = todo más grande)
+  function tamanoActual() { var t = leer('sandytv_tamano'); return TAMANOS[t] ? t : 'grande'; }
+  function aplicarTamano() {
+    var z = Math.max(1, window.innerWidth / TAMANOS[tamanoActual()]);
+    var el = $('inicio');
+    el.style.width = (window.innerWidth / z) + 'px';
+    el.style.height = (window.innerHeight / z) + 'px';
+    el.style.transform = z === 1 ? 'none' : 'scale(' + z + ')';
+    var b = $('bTamano'); if (b) b.textContent = '🔎 Tamaño: ' + tamanoActual();
+  }
+  window.addEventListener('resize', aplicarTamano);
+
   function pintarReloj() {
     var r = $('reloj'), v = relojVisible();
     r.style.display = v ? 'block' : 'none';
@@ -150,6 +180,12 @@
   }
   function alternarReloj() { guardar(LS_RELOJ, relojVisible() ? '0' : '1'); pintarReloj(); }
   $('bReloj').onclick = alternarReloj;
+  $('bTamano').onclick = function () {
+    var orden = ['normal', 'grande', 'enorme'];
+    guardar('sandytv_tamano', orden[(orden.indexOf(tamanoActual()) + 1) % orden.length]);
+    aplicarTamano();
+  };
+  aplicarTamano();
   $('bRelojP').onclick = alternarReloj;
   setInterval(pintarReloj, 1000);
 
@@ -251,7 +287,7 @@
     mostrar.forEach(function (ch) {
       var fila = document.createElement('div'); fila.className = 'fila';
       var b = document.createElement('button'); b.type = 'button'; b.className = 'canal';
-      if (ch.logo) { var im = document.createElement('img'); im.src = ch.logo; im.alt = ''; im.onerror = function () { im.style.visibility = 'hidden'; }; b.appendChild(im); }
+      b.appendChild(logoDe(ch));
       var t = document.createElement('span'); t.textContent = ch.nombre;
       var s = document.createElement('small'); s.textContent = 'Canal ' + (l ? mostrar.indexOf(ch) + 1 : ch.numero); t.appendChild(s); b.appendChild(t);
       b.onclick = function () { video.muted = false; pantallaCompleta(); reproducir(ch); };
