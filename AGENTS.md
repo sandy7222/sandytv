@@ -29,6 +29,10 @@
 6. **Cambios de configuración en los televisores** (fuentes desconocidas, modo desarrollador) los hace el
    dueño. La IA explica los pasos.
 
+## Documento clave del Philips
+
+Cómo se maneja el televisor Philips (Titan OS) con su control remoto y qué le llega al navegador: **`docs/CONTROL_PHILIPS.md`**.
+
 ## 3. Cómo se trabaja
 
 1. **Una fase por vez, un paso por vez, un commit por paso.** Mensaje de commit en español: qué cambió y por qué.

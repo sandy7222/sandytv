@@ -73,7 +73,9 @@
 
   /* Reloj (abajo a la izquierda) y diagnóstico de teclas (abajo a la derecha) */
   #reloj { position:fixed; left:24px; bottom:22px; font-size:30px; font-weight:700; background:#000a; padding:6px 16px; border-radius:12px; z-index:4; display:none; }
-  #tecla { position:fixed; right:12px; bottom:8px; font-size:12px; color:#fff9; background:#0008; padding:2px 8px; border-radius:6px; z-index:5; }
+  /* Leyenda de la última tecla: solo para diagnosticar. Oculta, salvo que se abra la página con ?diag */
+  #tecla { display:none; position:fixed; right:12px; bottom:8px; font-size:12px; color:#fff9; background:#0008; padding:2px 8px; border-radius:6px; z-index:5; }
+  body.diag #tecla { display:block; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
 </head>
@@ -331,7 +333,7 @@
     var enlaces = ch.enlaces.filter(function (e) { return esHttps(e.url); }).map(function (e) { return e.url; });
     actual = ch;
     aplicarFormato(formatoDe(ch));
-    document.body.className = 'jugando'; centrarScroll(); // relleno invisible para detectar CH+/CH− y ▲ ▼
+    document.body.classList.add('jugando'); centrarScroll(); // relleno invisible para detectar CH+/CH− y ▲ ▼
     $('inicio').style.display = 'none';
     $('reproductor').className = 'activo';
     pintarFav();
@@ -381,7 +383,7 @@
   function volverALista() {
     intento++; limpiar(); video.pause(); video.removeAttribute('src');
     $('reproductor').className = ''; $('inicio').style.display = 'flex';
-    document.body.className = ''; window.scrollTo(0, 0);
+    document.body.classList.remove('jugando'); window.scrollTo(0, 0);
     salirPantallaCompleta(); refrescar();
   }
 
@@ -425,6 +427,8 @@
   $('reproductor').addEventListener('click', function (e) { if (e.target === video && actual) mostrarBarra(actual, ''); });
 
   /* ---------- Teclas ---------- */
+  // La leyenda de diagnóstico se ve solo con la dirección .../p/?diag
+  if (/[?&]diag\b/.test(location.search)) document.body.classList.add('diag');
   function mostrarTecla(e, tipo) { $('tecla').textContent = tipo + ': ' + (e.key || '?') + ' · ' + (e.code || '?') + ' · keyCode ' + e.keyCode; }
   document.addEventListener('keyup', function (e) { mostrarTecla(e, 'keyup'); });
   // Botones aprendidos en la pantalla "Aprender el control" (control/): tienen prioridad sobre los de siempre.
