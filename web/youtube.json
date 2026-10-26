@@ -1,0 +1,12 @@
+{
+  "formato": "sandytv-youtube-1",
+  "aviso": "Vivos de YouTube que se ven incrustados en la página. 'canal' es el identificador del canal de YouTube (empieza con UC). Probados 2026-10-26.",
+  "canales": [
+    { "id": "yt.tn", "nombre": "TN Todo Noticias", "canal": "UCj6PcyLvpnIRT_2W_mwa9Aw", "categoria": "argentina" },
+    { "id": "yt.c5n", "nombre": "C5N", "canal": "UCFgk2Q2mVO1BklRQhSv6p0w", "categoria": "argentina" },
+    { "id": "yt.cronica", "nombre": "Crónica TV", "canal": "UCT7KFGv6s2a-rh2Jq8ZdM1g", "categoria": "argentina" },
+    { "id": "yt.tvpublica", "nombre": "Televisión Pública", "canal": "UCs231K71Bnu5295_x0MB5Pg", "categoria": "argentina" },
+    { "id": "yt.a24", "nombre": "A24", "canal": "UCR9120YBAqMfntqgRTKmkjQ", "categoria": "argentina" },
+    { "id": "yt.argentina12", "nombre": "Argentina 12", "canal": "UC1bBjOZieJWHbsFA0LwjjJA", "categoria": "argentina" }
+  ]
+}

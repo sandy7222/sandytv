@@ -70,7 +70,12 @@
   #barra .num { font-size:38px; font-weight:800; } #barra .det { color:var(--acento); font-size:18px; min-height:24px; }
   #logoEsq { position:absolute; top:24px; right:32px; width:190px; height:100px; background:var(--sup); border-radius:14px; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .25s; pointer-events:none; }
   #logoEsq.ver { opacity:1; } #logoEsq img { max-width:90%; max-height:90%; }
-  #controles { position:absolute; top:24px; left:28px; display:flex; gap:10px; flex-wrap:wrap; max-width:60vw; opacity:0; transition:opacity .25s; }
+  #yt { position:absolute; inset:0; width:100%; height:100%; border:0; background:#000; display:none; }
+  /* Franja transparente arriba: el mouse no avisa nada mientras pasa sobre el video de YouTube, así que la barra se despierta con esta franja. */
+  #sensor { position:absolute; top:0; left:0; right:0; height:120px; z-index:1; display:none; }
+  #reproductor.esyt #yt, #reproductor.esyt #sensor { display:block; }
+  #reproductor.esyt video { display:none; }
+  #controles { z-index:3; position:absolute; top:24px; left:28px; display:flex; gap:10px; flex-wrap:wrap; max-width:60vw; opacity:0; transition:opacity .25s; }
   #controles.ver { opacity:1; }
   .zona { position:absolute; top:130px; bottom:150px; width:11vw; display:flex; align-items:center; justify-content:center; font-size:64px; color:#fff; cursor:pointer; opacity:0; transition:opacity .25s; z-index:2; user-select:none; }
   .zona:hover { background:#22D3EE22; opacity:1; }
@@ -102,6 +107,8 @@
 
 <div id="reproductor">
   <video id="video" playsinline></video>
+  <iframe id="yt" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="YouTube"></iframe>
+  <div id="sensor"></div>
   <div id="logoEsq"><img id="logoImg" alt=""></div>
   <div id="controles">
     <button id="bAnt" type="button">▼ Canal anterior</button>
@@ -421,14 +428,20 @@
     if (!dir) { saltos = 0; delete fallos[ch.id]; guardarFallos(); } // si lo elegiste vos, se vuelve a intentar
     // Se corta el video anterior ya mismo: si no, queda la última imagen congelada y parece que el botón no hizo nada.
     limpiar(); video.pause(); video.removeAttribute('src'); try { video.load(); } catch (e) {}
+    $('yt').src = 'about:blank';
     var enlaces = ch.enlaces.filter(function (e) { return esHttps(e.url); }).map(function (e) { return e.url; });
     actual = ch;
     aplicarFormato(formatoDe(ch));
     document.body.classList.add('jugando'); centrarScroll(); // relleno invisible para detectar CH+/CH− y ▲ ▼
     $('inicio').style.display = 'none';
-    $('reproductor').className = 'activo';
     pintarFav();
     mostrarBarra(ch, 'Sintonizando…');
+    // Vivo de YouTube: se ve incrustado; no se toca nada de su reproductor, el canal se cambia con las flechas de la pantalla.
+    $('reproductor').className = ch.yt ? 'activo esyt' : 'activo';
+    if (ch.yt) {
+      $('yt').src = 'https://www.youtube.com/embed/live_stream?channel=' + encodeURIComponent(ch.yt) + '&autoplay=1&playsinline=1&rel=0&iv_load_policy=3';
+      delete fallos[ch.id]; saltos = 0; mostrarBarra(ch, 'En vivo desde YouTube'); return;
+    }
     var n = 0;
     (function siguiente() {
       if (mio !== intento) return;
@@ -472,7 +485,7 @@
   function ocultarBarra() { ['barra', 'logoEsq', 'controles', 'zonaAnt', 'zonaSig'].forEach(function (id) { $(id).className = $(id).className.replace(' ver', ''); }); }
   function avisar(t) { var a = $('aviso'); a.textContent = t; a.style.display = 'block'; clearTimeout(timerAviso); timerAviso = setTimeout(function () { a.style.display = 'none'; }, 3000); }
   function volverALista() {
-    intento++; limpiar(); video.pause(); video.removeAttribute('src');
+    intento++; limpiar(); video.pause(); video.removeAttribute('src'); $('yt').src = 'about:blank';
     $('reproductor').className = ''; $('inicio').style.display = 'flex';
     document.body.classList.remove('jugando'); window.scrollTo(0, 0);
     salirPantallaCompleta(); refrescar();
@@ -484,7 +497,7 @@
   function pintarRueda() { $('bRueda').textContent = '↕ ▲▼ y CH: ' + (ruedaOn() ? 'sí' : 'no'); }
   $('bRueda').onclick = function () { guardar('sandytv_rueda', ruedaOn() ? '0' : '1'); pintarRueda(); };
   pintarRueda();
-  function jugando() { return $('reproductor').className === 'activo'; }
+  function jugando() { return $('reproductor').className.indexOf('activo') === 0; }
   function zapRueda(dir) {
     var ahora = Date.now();
     if (ahora - ultimoZap < 700) return; // cada pulsación manda varios avisos seguidos: se cuenta uno solo
@@ -535,7 +548,7 @@
     var tag = (e.target && e.target.tagName) || '';
     if (tag === 'INPUT') return; // escribiendo un título: no tocar las teclas
     var k = e.key, c = e.keyCode;
-    if ($('reproductor').className !== 'activo') return; // en la lista, el navegador maneja el foco con el puntero
+    if ($('reproductor').className.indexOf('activo') !== 0) return; // en la lista, el navegador maneja el foco con el puntero
     var parar = true;
     if (esAprendido(e, 'canalSig')) cambiar(1);
     else if (esAprendido(e, 'canalAnt')) cambiar(-1);
@@ -569,6 +582,18 @@
   var enLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1'; // para probar en la PC con la cartelera de al lado
   var URL_CARTELERA = (enGithub || enLocal) ? '../cartelera.json' : 'https://sandy7222.github.io/sandytv/cartelera.json';
   BASE_LOGOS = URL_CARTELERA.replace('cartelera.json', '');
+  var URL_YOUTUBE = URL_CARTELERA.replace('cartelera.json', 'youtube.json');
+  function esYoutube(u) { return /^https:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(u || ''); }
+  // Los vivos de YouTube no se pueden reproducir como video común: se sacan los canales que solo tienen enlaces de YouTube
+  // y se suman los que se incrustan (youtube.json).
+  function sumarYoutube(y) {
+    canales = canales.filter(function (x) { return !x.enlaces.every(function (e) { return esYoutube(e.url); }); });
+    var max = 0; canales.forEach(function (x) { if (x.numero > max) max = x.numero; });
+    (y.canales || []).forEach(function (v) {
+      if (!v || !v.canal || !v.nombre) return;
+      canales.push({ id: v.id || ('yt.' + v.canal), numero: ++max, nombre: v.nombre, emisora: 'YouTube', categoria: v.categoria || 'argentina', logo: v.logo || '', yt: v.canal, enlaces: [{ url: 'https://www.youtube.com/channel/' + v.canal, puntaje: 0 }] });
+    });
+  }
   function sincronizarHora(r) {
     // Toda respuesta HTTP trae la hora exacta del servidor en el encabezado Date: sirve para corregir el reloj del televisor.
     var f = r.headers.get('date'); var t = f ? Date.parse(f) : NaN;
@@ -583,6 +608,8 @@
   }).then(function (c) {
     categorias = c.categorias || [];
     canales = (c.canales || []).filter(function (x) { return x.enlaces && x.enlaces.some(function (e) { return esHttps(e.url); }); });
+    return fetch(URL_YOUTUBE).then(function (r) { return r.json(); }).catch(function () { return { canales: [] }; }).then(function (y) { sumarYoutube(y); return c; });
+  }).then(function (c) {
     if (!canales.some(function (x) { return x.categoria === catActual; }) && canales.length) catActual = canales[0].categoria;
     cargarListas();
     if (!datos.listas.length && canales.length) listaInicial(); // la primera vez: "Mi lista" con propuesta corta
