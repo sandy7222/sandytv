@@ -58,6 +58,12 @@ jobs:
           npm install --no-save --no-package-lock sharp || true
           node bajar_logos.mjs salida || true
 
+      - name: Catálogo de búsqueda
+        if: steps.armar.outputs.publicar == 'si'
+        working-directory: cartelera
+        # Si falla, la cartelera se publica igual (el buscador queda sin catálogo nuevo).
+        run: node armar_catalogo.mjs salida || true
+
       - name: Informe del día
         if: always()
         run: |
@@ -73,6 +79,7 @@ jobs:
           cp cartelera/salida/cartelera.json pagina/cartelera.json
           cp cartelera/salida/informe.json pagina/informe.json
           if [ -d cartelera/salida/logos ]; then cp -r cartelera/salida/logos pagina/logos; fi
+          if [ -f cartelera/salida/catalogo.json ]; then cp cartelera/salida/catalogo.json pagina/catalogo.json; fi
           # Páginas web de SandyTV (por ahora, la prueba del navegador del Philips en /p/)
           cp -r web/. pagina/
 

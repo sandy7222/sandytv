@@ -59,6 +59,19 @@
   #panelYt button { font-size:20px; padding:10px 26px; margin-right:12px; }
   #detective { display:none; position:fixed; right:12px; top:12px; width:46vw; max-height:92vh; overflow:hidden; background:#000c; border:3px solid #FACC15; border-radius:12px; padding:10px 14px; z-index:50; font:22px/1.25 monospace; color:#fff; pointer-events:none; }
   #detective.ver { display:block; } #detective b { color:#FACC15; } #detective i { color:#94A3B8; font-style:normal; }
+  #panelBus { display:none; position:absolute; left:0; top:0; right:0; bottom:0; background:#0B1020f2; z-index:5; padding:20px 36px; flex-direction:column; }
+  #panelBus.ver { display:flex; }
+  #panelBus h2 { margin:0 0 6px; font-size:26px; } #panelBus p { margin:0 0 10px; color:var(--suave); font-size:15px; }
+  #panelBus .fila2 { display:flex; gap:10px; margin-bottom:10px; align-items:center; }
+  #panelBus input, #panelBus select { font-size:18px; padding:8px 12px; width:auto; flex:1; background:#0F1626; color:var(--texto); border:2px solid #334155; border-radius:10px; }
+  #panelBus select { flex:0 0 280px; }
+  #panelBus button { font-size:18px; padding:8px 20px; }
+  #busRes { flex:1; overflow:hidden; display:flex; flex-direction:column; gap:6px; }
+  .res { display:flex; align-items:center; gap:12px; background:var(--sup); border-radius:10px; padding:6px 12px; }
+  .res div { flex:1; min-width:0; } .res b { font-size:20px; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .res small { color:var(--suave); font-size:14px; } .res button { flex:none; }
+  #busMsg { color:var(--acento); font-size:16px; min-height:22px; margin:4px 0; }
+  #busPegar { margin-top:8px; padding-top:10px; border-top:1px solid #263248; }
   #nav { display:flex; align-items:center; justify-content:center; gap:16px; padding:8px 0 0; }
   #nav button { font-size:20px; padding:8px 26px; } #nav span { font-size:18px; color:var(--suave); min-width:170px; text-align:center; }
   body.sincursor, body.sincursor * { cursor:none !important; }
@@ -111,7 +124,7 @@
 <div id="inicio">
   <div id="cab">
     <div class="logo">Sandy<b>TV</b></div>
-    <span><button id="bTamano" type="button">🔎 Tamaño: grande</button><button id="bYt" type="button">＋ Canal de YouTube</button><button id="bDet" type="button">🔬 Detective: no</button><button id="bCampo" type="button">⌨ Campo: no</button><button id="bControl" type="button" onclick="location.href='control/'">🎛 Aprender el control</button><button id="bReloj" type="button">🕒 Reloj: sí</button></span>
+    <span><button id="bTamano" type="button">🔎 Tamaño: grande</button><button id="bBus" type="button">🔍 Buscar canales</button><button id="bYt" type="button">＋ Canal de YouTube</button><button id="bDet" type="button">🔬 Detective: no</button><button id="bCampo" type="button">⌨ Campo: no</button><button id="bControl" type="button" onclick="location.href='control/'">🎛 Aprender el control</button><button id="bReloj" type="button">🕒 Reloj: sí</button></span>
   </div>
   <div id="listasBar"></div>
   <div id="cats"></div>
@@ -125,6 +138,17 @@
   <div class="msg" id="ytMsg"></div>
   <button id="ytGuardar" type="button">Guardar canal</button><button id="ytCancelar" type="button">Cancelar</button>
 </div></div>
+  <div id="panelBus">
+    <h2>🔍 Buscar canales de IPTV</h2>
+    <p>Buscá por nombre (o elegí un país) y tocá "＋ Agregar": queda como un canal tuyo, en "Agregados" y en tu lista. Solo salen los que este televisor puede reproducir.</p>
+    <div class="fila2"><input id="busTexto" placeholder="Nombre del canal (ej.: telefe, cnn, deportes)" maxlength="40"><select id="busPais"></select><button id="busCerrar" type="button">Cerrar</button></div>
+    <div id="busMsg"></div>
+    <div id="busRes"></div>
+    <div id="busPegar">
+      <p>¿Tenés el enlace de un canal (termina en .m3u8)? Pegalo acá:</p>
+      <div class="fila2"><input id="busNombre" placeholder="Nombre" maxlength="40"><input id="busUrl" placeholder="https://…/canal.m3u8"><button id="busAgregarUrl" type="button">＋ Agregar enlace</button></div>
+    </div>
+  </div>
   <div id="pie">Tocá un canal para verlo. La ☆ lo agrega o quita de tu lista. Dentro del canal: ▲ ▼ del control, el botón AZUL (siguiente) y el ROJO (anterior); AMARILLO cambia el formato de imagen. El favorito se agrega con la ☆ o el botón de arriba. Atrás vuelve acá.<span id="medida"></span></div>
 </div>
 
@@ -687,11 +711,85 @@
   };
   function borrarPropio(ch) {
     var clave = ch.yt || ch.ytVideo;
-    guardar(LS_YT, JSON.stringify(ytPropios().filter(function (x) { return (x.canal || x.video) !== clave; })));
+    if (ch.agregado) guardar(LS_AGR, JSON.stringify(agregados().filter(function (x) { return x.id !== ch.id; })));
+    else guardar(LS_YT, JSON.stringify(ytPropios().filter(function (x) { return (x.canal || x.video) !== clave; })));
     canales = canales.filter(function (x) { return x !== ch; });
     datos.listas.forEach(function (l) { var i = l.canales.indexOf(ch.id); if (i >= 0) l.canales.splice(i, 1); }); guardarListas();
   }
+  /* ---------- Buscador de canales (catálogo de iptv-org) y canales agregados ---------- */
+  var LS_AGR = 'sandytv_agregados';
+  var catalogo = null, catalogoNorm = null, catalogoEstado = '';
+  function agregados() { try { var j = JSON.parse(leer(LS_AGR)); return j && j.length !== undefined ? j : []; } catch (e) { return []; } }
+  function norm(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  function canalAgregado(r) { return { id: r.id, numero: 0, nombre: r.nombre, emisora: r.pais || '', categoria: 'agregados', logo: '', propio: true, agregado: true, enlaces: [{ url: r.url, puntaje: 0 }] }; }
+  function asegurarGrupoAgregados() { if (agregados().length && !categorias.some(function (g) { return g.id === 'agregados'; })) categorias.push({ id: 'agregados', nombre: 'Agregados' }); }
+  function sumarAgregados() {
+    var max = 0; canales.forEach(function (x) { if (x.numero > max) max = x.numero; });
+    agregados().forEach(function (r) { if (canalPorId(r.id)) return; var c = canalAgregado(r); c.numero = ++max; canales.push(c); });
+    asegurarGrupoAgregados();
+  }
+  function yaEsta(id) { return !!canalPorId(id); }
+  function agregarCanal(r) {
+    var l = agregados(); l.push(r); guardar(LS_AGR, JSON.stringify(l));
+    var c = canalAgregado(r), max = 0; canales.forEach(function (x) { if (x.numero > max) max = x.numero; }); c.numero = max + 1;
+    canales.push(c); asegurarGrupoAgregados();
+    var d = destino(); if (d && !enLista(d, c)) alternarEnLista(d, c); // queda en tu lista, listo para verlo
+    return c;
+  }
+  function msgBus(t) { $('busMsg').textContent = t || ''; }
+  function abrirBuscador() {
+    $('panelBus').className = 'ver'; msgBus('');
+    if (catalogo) { buscar(); return; }
+    msgBus('Bajando el catálogo de canales…'); $('busRes').innerHTML = '';
+    fetch(URL_CATALOGO).then(function (r) { if (!r.ok) throw new Error('respuesta ' + r.status); return r.json(); }).then(function (c) {
+      catalogo = c; catalogoNorm = c.canales.map(function (x) { return norm(x[1]); });
+      var sel = $('busPais'); sel.innerHTML = '<option value="">Todos los países</option>';
+      Object.keys(c.paises).sort(function (a, b) { return a === 'AR' ? -1 : b === 'AR' ? 1 : c.paises[a].localeCompare(c.paises[b]); }).forEach(function (k) {
+        var o = document.createElement('option'); o.value = k; o.textContent = c.paises[k]; sel.appendChild(o);
+      });
+      msgBus(''); buscar();
+    }).catch(function (e) { msgBus('No pude bajar el catálogo (' + e.message + '). Probá de nuevo más tarde.'); });
+  }
+  function buscar() {
+    if (!catalogo) return;
+    var q = norm($('busTexto').value).replace(/^\s+|\s+$/g, ''), pais = $('busPais').value, out = [], total = 0, LIM = 6;
+    $('busRes').innerHTML = '';
+    if (!q && !pais) { msgBus('Escribí el nombre de un canal o elegí un país.'); return; }
+    for (var i = 0; i < catalogo.canales.length; i++) {
+      var c = catalogo.canales[i];
+      if (pais && c[2] !== pais) continue;
+      if (q && catalogoNorm[i].indexOf(q) < 0) continue;
+      total++; if (out.length < LIM) out.push(c);
+    }
+    msgBus(total ? (total > LIM ? 'Hay ' + total + ' canales: mostrando ' + LIM + '. Escribí más letras para achicar.' : total + (total === 1 ? ' canal' : ' canales')) : 'No encontré canales con eso.');
+    out.forEach(function (c) {
+      var fila = document.createElement('div'); fila.className = 'res';
+      var info = document.createElement('div'), n = document.createElement('b'), sm = document.createElement('small');
+      n.textContent = c[1]; sm.textContent = (catalogo.paises[c[2]] || c[2]) + (c[3] ? ' · ' + c[3] : '') + (c[5] ? ' · ' + c[5] : '');
+      info.appendChild(n); info.appendChild(sm); fila.appendChild(info);
+      var b = document.createElement('button'); b.type = 'button';
+      if (yaEsta(c[0])) { b.textContent = '✓ Ya está'; b.disabled = true; }
+      else { b.textContent = '＋ Agregar'; b.onclick = function () { agregarCanal({ id: c[0], nombre: c[1], url: c[4], pais: catalogo.paises[c[2]] || c[2] }); msgBus('Agregado: ' + c[1] + ' (está en "Agregados" y en tu lista)'); buscar2(); }; }
+      fila.appendChild(b); $('busRes').appendChild(fila);
+    });
+  }
+  function buscar2() { var m = $('busMsg').textContent; buscar(); msgBus(m); } // vuelve a dibujar sin pisar el aviso
+  $('bBus').onclick = abrirBuscador;
+  $('busCerrar').onclick = function () { $('panelBus').className = ''; refrescar(); };
+  $('busTexto').oninput = buscar; $('busPais').onchange = buscar;
+  $('busAgregarUrl').onclick = function () {
+    var nombre = $('busNombre').value.replace(/^\s+|\s+$/g, ''), url = $('busUrl').value.replace(/^\s+|\s+$/g, '');
+    if (!nombre) return msgBus('Poné un nombre para el canal.');
+    if (url.indexOf('https://') !== 0) return msgBus('El enlace tiene que empezar con https:// (con http el televisor no lo reproduce).');
+    if (/\.m3u(\?|$)/i.test(url)) return msgBus('Eso es una lista de canales (.m3u), no un canal. Hace falta el enlace de UN canal, que termina en .m3u8.');
+    var h = 0; for (var i = 0; i < url.length; i++) h = (h * 31 + url.charCodeAt(i)) | 0;
+    var id = 'url.' + (h >>> 0).toString(36);
+    if (yaEsta(id)) return msgBus('Ese enlace ya está agregado.');
+    agregarCanal({ id: id, nombre: nombre, url: url, pais: '' });
+    $('busNombre').value = ''; $('busUrl').value = ''; msgBus('Agregado: ' + nombre + ' (está en "Agregados" y en tu lista)');
+  };
   var URL_YOUTUBE = URL_CARTELERA.replace('cartelera.json', 'youtube.json');
+  var URL_CATALOGO = URL_CARTELERA.replace('cartelera.json', 'catalogo.json');
   function esYoutube(u) { return /^https:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(u || ''); }
   // Los vivos de YouTube no se pueden reproducir como video común: se sacan los canales que solo tienen enlaces de YouTube
   // y se suman los que se incrustan (youtube.json).
@@ -717,7 +815,7 @@
   }).then(function (c) {
     categorias = c.categorias || [];
     canales = (c.canales || []).filter(function (x) { return x.enlaces && x.enlaces.some(function (e) { return esHttps(e.url); }); });
-    return fetch(URL_YOUTUBE).then(function (r) { return r.json(); }).catch(function () { return { canales: [] }; }).then(function (y) { sumarYoutube(y); sumarPropios(); return c; });
+    return fetch(URL_YOUTUBE).then(function (r) { return r.json(); }).catch(function () { return { canales: [] }; }).then(function (y) { sumarYoutube(y); sumarPropios(); sumarAgregados(); return c; });
   }).then(function (c) {
     if (!canales.some(function (x) { return x.categoria === catActual; }) && canales.length) catActual = canales[0].categoria;
     cargarListas();
