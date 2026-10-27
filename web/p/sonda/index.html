@@ -27,6 +27,7 @@
   button:hover { border-color:var(--acento); }
   button.escuchando { border-color:var(--esp); background:#3a2f06; animation:parpadeo 1s infinite; }
   button.hecho { border-color:var(--ok); }
+  button.vacio { border-color:var(--mal); }
   @keyframes parpadeo { 50% { opacity:.55; } }
   input { font:inherit; font-size:18px; color:var(--texto); background:#0F1626; border:2px solid #334155; border-radius:10px; padding:8px 12px; width:340px; }
   #estado { min-height:34px; font-size:20px; font-weight:700; padding:6px 0; }
@@ -162,18 +163,23 @@
   }
 
   /* Botones para elegir cuál se va a apretar */
+  // Verde = en la grabación llegó algo útil; rojo = no llegó nada útil (el borde NO dice que el botón se haya reconocido por tener color)
+  function claseHuella(nombre) {
+    var h = huellas[nombre]; if (!h) return '';
+    return Object.keys(h.eventos).some(esImportante) ? 'hecho' : 'vacio';
+  }
   function armarBotones() {
     var cont = $('botones'); cont.innerHTML = '';
     BOTONES.forEach(function (nombre) {
       var b = document.createElement('button'); b.type = 'button'; b.textContent = nombre; b.dataset.nombre = nombre;
-      if (huellas[nombre]) b.className = 'hecho';
+      b.className = claseHuella(nombre);
       b.onclick = function () { escuchar(nombre, b); };
       cont.appendChild(b);
     });
   }
   function escuchar(nombre, boton) {
     clearTimeout(timerCaptura);
-    document.querySelectorAll('#botones button.escuchando').forEach(function (x) { x.className = huellas[x.dataset.nombre] ? 'hecho' : ''; });
+    document.querySelectorAll('#botones button.escuchando').forEach(function (x) { x.className = claseHuella(x.dataset.nombre); });
     boton.className = 'escuchando';
     // se espera un momento para no contar el clic con que se eligió el botón, y después se escucha 3 segundos
     var ahora = Date.now();
@@ -183,7 +189,7 @@
     timerCaptura = setTimeout(function () {
       huellas[nombre] = { eventos: captura.eventos };
       try { window.localStorage.setItem(LS, JSON.stringify(huellas)); } catch (e) {}
-      boton.className = 'hecho';
+      boton.className = claseHuella(nombre);
       $('estado').innerHTML = 'Listo "' + nombre + '". Mirá su huella en la tabla de abajo, y elegí otro botón.';
       captura = null; pintar();
     }, 3800);
