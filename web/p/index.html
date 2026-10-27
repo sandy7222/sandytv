@@ -111,7 +111,7 @@
 <div id="inicio">
   <div id="cab">
     <div class="logo">Sandy<b>TV</b></div>
-    <span><button id="bTamano" type="button">🔎 Tamaño: grande</button><button id="bYt" type="button">＋ Canal de YouTube</button><button id="bDet" type="button">🔬 Detective: no</button><button id="bControl" type="button" onclick="location.href='control/'">🎛 Aprender el control</button><button id="bReloj" type="button">🕒 Reloj: sí</button></span>
+    <span><button id="bTamano" type="button">🔎 Tamaño: grande</button><button id="bYt" type="button">＋ Canal de YouTube</button><button id="bDet" type="button">🔬 Detective: no</button><button id="bCampo" type="button">⌨ Campo: no</button><button id="bControl" type="button" onclick="location.href='control/'">🎛 Aprender el control</button><button id="bReloj" type="button">🕒 Reloj: sí</button></span>
   </div>
   <div id="listasBar"></div>
   <div id="cats"></div>
@@ -144,6 +144,7 @@
     <button id="bRueda" type="button">↕ ▲▼ y CH: sí</button>
     <button id="bLista" type="button">☰ Lista</button>
     <button id="bDet2" type="button">🔬 Detective: no</button>
+    <button id="bCampo2" type="button">⌨ Campo: no</button>
   </div>
   <div class="zona" id="zonaAnt" title="Canal anterior">‹</div>
   <div class="zona" id="zonaSig" title="Canal siguiente">›</div>
@@ -746,6 +747,22 @@
   $('bDet').onclick = detAlternar; $('bDet2').onclick = detAlternar;
   try { detOn = window.sessionStorage.getItem('sandytv_detective') === '1'; } catch (e) {}
   detPintar();
+  /* Prueba: la sonda tiene un campo de texto con el foco y un audio sonando, y ahí CH+ sí llegó. Con "Campo: sí" se pone un campo invisible con el foco
+     (mientras está así, las teclas de colores de la página no actúan: es solo para investigar). */
+  var campoDet = null;
+  function campoPintar() { ['bCampo', 'bCampo2'].forEach(function (id) { var b = $(id); if (b) b.textContent = '⌨ Campo: ' + (campoDet ? 'sí' : 'no'); }); }
+  function campoAlternar() {
+    if (campoDet) { if (campoDet.parentNode) campoDet.parentNode.removeChild(campoDet); campoDet = null; campoPintar(); det('campo de prueba quitado'); return; }
+    campoDet = document.createElement('input'); campoDet.id = 'campoDet'; campoDet.type = 'text';
+    campoDet.style.cssText = 'position:fixed;left:0;bottom:0;width:6px;height:6px;opacity:.02;z-index:60;border:0;padding:0';
+    document.body.appendChild(campoDet); campoDet.focus(); campoPintar(); det('campo de prueba enfocado (activo=' + (document.activeElement && document.activeElement.id) + ')');
+  }
+  $('bCampo').onclick = campoAlternar; $('bCampo2').onclick = campoAlternar;
+  ['keypress'].forEach(function (t) { document.addEventListener(t, function (e) { det('keypress: ' + dk(e)); }, true); });
+  ['input', 'beforeinput', 'compositionstart'].forEach(function (t) { document.addEventListener(t, function (e) { det(t + (e.data ? ' texto=' + e.data : '')); }, true); });
+  ['pointerdown', 'mousedown', 'mouseup', 'touchstart'].forEach(function (t) { document.addEventListener(t, function () { det(t); }, true); });
+  window.addEventListener('pagehide', function () { det('pagehide'); });
+  window.addEventListener('hashchange', function () { det('hashchange'); });
   function dk(e) { return (e.key || '?') + ' · ' + (e.code || '?') + ' · keyCode ' + e.keyCode; }
   document.addEventListener('keydown', function (e) { det('TECLA abajo: ' + dk(e)); }, true);
   document.addEventListener('keyup', function (e) { det('tecla arriba: ' + dk(e)); }, true);
