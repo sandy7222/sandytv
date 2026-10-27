@@ -23,9 +23,9 @@ los botones NO llegan como teclas.** Resultado de la sonda (huella de cada botó
 | **Rojo** (dibujo ◀◀) | tecla `ColorF0Red`, keyCode **403** | canal **anterior** |
 | **Amarillo** (dibujo ▶) | tecla `ColorF2Yellow`, keyCode **405** | cambiar **formato** de imagen |
 | **Azul** (dibujo ▶▶) | tecla `ColorF3Blue`, keyCode **406** | canal **siguiente** |
-| **Verde** (dibujo ⏸) | no se detectó en la sonda (código estándar 404) | agregar o quitar el canal de la lista (**favorito**) |
-| **CH +** | rueda hacia arriba (`wheel deltaY=-50`) y scroll hacia arriba (200 px) | canal siguiente (sin confirmar en el reproductor) |
-| **CH −** | **solo foco y puntero**, sin rueda hacia abajo | **no se puede distinguir** (sin confirmar) |
+| **Verde** (dibujo ⏸) | **no llega nada** (sonda repetida 2026-10-27: "no llegó NADA") | **no se puede usar**: el favorito se agrega con la ☆ o el botón en pantalla |
+| **CH +** | **no llega nada** (sonda repetida 2026-10-27; la primera vez se había anotado una rueda hacia arriba, no se repitió) | **no se puede usar** |
+| **CH −** | **no llega nada** (idem) | **no se puede usar** |
 | **▲** | rueda `deltaY=-50` y scroll hacia arriba (50 px) | canal siguiente (ver abajo) |
 | **▼** | rueda `deltaY=+50` | canal anterior (ver abajo) |
 | **◀ ▶** | rueda con `deltaY=0` | nada |
@@ -57,7 +57,7 @@ piso) cambia de canal**. Por eso en el reproductor hay un botón **"↕ ▲▼ y
 
 ## 4. Pendiente
 
-- **CH + / CH − dentro del reproductor: el detective NO los ve, pero la sonda SÍ (2026-10-26); se investiga si es por el campo de texto enfocado (botón "⌨ Campo").** Nota anterior, a revisar: Con el botón **"🔬 Detective"** de la página (anota en pantalla todo lo que le llega) el dueño apretó CH+ y CH− mirando un canal y **no se registra nada**; en cambio las teclas de colores sí. El televisor se queda con esos dos botones. Desde una página web **no se pueden usar**: solo una app oficial de Titan OS (DevView/Partner Portal, solicitud pendiente) podría recibirlos. Rojo, amarillo, azul y ▲▼ andan también con YouTube en pantalla.
+- **CH + / CH −: CONFIRMADO que no llegan, ni con el detective en el reproductor ni con la sonda repetida (2026-10-27).** Tampoco el **verde**. El televisor se queda con esos botones. Lo anotado la primera vez (CH+ como rueda hacia arriba) no se repitió. Desde una página web **no se pueden usar**: solo una app oficial de Titan OS (DevView/Partner Portal, solicitud pendiente) podría recibirlos. Llegan como tecla: **rojo, amarillo, azul y Atrás (`Backspace`)**; ▲▼ ◀▶ como rueda y puntero; volumen/silencio solo un aviso de foco. Rojo, amarillo, azul y ▲▼ andan también con YouTube en pantalla.
 - Por probar con el detective (puede haber más botones que lleguen): números 0–9, INFO, GUÍA, MENÚ, OK largo, ◀ ▶, play/pausa/avance/retroceso.
 - Probar el **verde** (favorito) con un canal.
 - Una app web real de Titan OS (DevView) recibiría teclas como las apps oficiales: depende de la aprobación.
