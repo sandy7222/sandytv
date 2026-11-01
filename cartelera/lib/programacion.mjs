@@ -42,14 +42,24 @@ function elegir(candidatos, historial, creadorAnterior) {
  * Renueva la grilla: lo que ya está en marcha o por venir queda igual; se sacan los programas terminados
  * y se agregan programas al final hasta cubrir `horas` desde `ahora`.
  */
-export function construirGrilla({ anterior = [], candidatos = [], ahora, horas = 48, historial = {} }) {
+export function construirGrilla({ anterior = [], candidatos = [], ahora, horas = 48, historial = {}, auspicios = [] }) {
   const hist = { ...historial };
   const programas = anterior.filter(p => p.i + p.d > ahora).map(p => ({ ...p }));
   for (const p of programas) hist[p.v] = Math.max(hist[p.v] ?? -Infinity, p.i);
   const fin = ahora + horas * 3600;
   let t = programas.length ? programas[programas.length - 1].i + programas[programas.length - 1].d : ahora;
-  let creadorAnterior = programas.length ? programas[programas.length - 1].c : null;
+  let creadorAnterior = programas.length ? programas.filter(p => !p.a).slice(-1)[0]?.c ?? null : null;
+  // Videos seguidos desde el último espacio auspiciado (para seguir la cuenta cuando se renueva la grilla)
+  let desdeSpot = 0, nSpot = 0;
+  for (let k = programas.length - 1; k >= 0 && !programas[k].a; k--) desdeSpot++;
+  nSpot = programas.filter(p => p.a).length;
   while (t < fin && candidatos.length) {
+    const sp = auspicios.length && programas.length && !programas[programas.length - 1].a ? auspicios[nSpot % auspicios.length] : null;
+    if (sp && desdeSpot >= (sp.cada || 3)) {
+      programas.push({ v: 'spot:' + sp.id, t: 'Espacio auspiciado: ' + sp.nombre, c: 'Publicidad', i: t, d: sp.dur, a: sp.archivo });
+      t += sp.dur; desdeSpot = 0; nSpot++; continue;
+    }
+    desdeSpot++;
     const c = elegir(candidatos, hist, creadorAnterior);
     programas.push({ v: c.id, t: c.titulo, c: c.creador, i: t, d: c.dur });
     hist[c.id] = t; t += c.dur; creadorAnterior = c.creador;

@@ -7,6 +7,7 @@
   "minMinutos": 8,
   "maxMinutos": 180,
   "maxEdadDias": 150,
+  "auspicios": [{ "id": "el-guia", "nombre": "El Guía YA", "archivo": "spots/el-guia.mp4", "dur": 30, "cada": 3 }, { "id": "el-guia-2", "nombre": "El Guía YA", "archivo": "spots/el-guia-2.mp4", "dur": 30, "cada": 3 }],
   "creadores": [
     {
       "nombre": "AirgunGearShow",
@@ -310,3 +311,4 @@
     }
   ]
 }
+

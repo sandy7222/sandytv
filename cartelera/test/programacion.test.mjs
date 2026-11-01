@@ -78,3 +78,32 @@ test('si la grilla vieja quedó toda en el pasado, arranca desde ahora', () => {
   const { programas } = construirGrilla({ anterior: vieja, candidatos: cs, ahora: 100000, horas: 1 });
   assert.equal(programas[0].i, 100000);
 });
+
+const SPOT = { id: 'el-guia', nombre: 'El Guía YA', archivo: 'spots/el-guia.mp4', dur: 30, cada: 3 };
+
+test('auspicio: se intercala un spot cada N videos y no cambia los horarios de lo demás', () => {
+  const cs = ['a', 'b', 'c', 'd', 'e', 'f', 'g'].map((x, i) => cand(x, 'C' + i, 100 + i));
+  const { programas } = construirGrilla({ anterior: [], candidatos: cs, ahora: 0, horas: 6, auspicios: [SPOT] });
+  const tipos = programas.map(p => (p.a ? 'S' : 'V')).join('');
+  assert.ok(tipos.startsWith('VVVSVVVS'), tipos);
+  const s = programas.find(p => p.a);
+  assert.equal(s.a, 'spots/el-guia.mp4'); assert.equal(s.d, 30); assert.equal(s.c, 'Publicidad');
+  assert.match(s.t, /auspiciado/i);
+  for (let k = 1; k < programas.length; k++) assert.equal(programas[k].i, programas[k - 1].i + programas[k - 1].d, 'sin huecos');
+});
+
+test('auspicio: al renovar la grilla sigue la cuenta y no pone dos spots seguidos', () => {
+  const cs = ['a', 'b', 'c', 'd', 'e', 'f'].map((x, i) => cand(x, 'C' + i, 100 + i));
+  const p1 = construirGrilla({ anterior: [], candidatos: cs, ahora: 0, horas: 3, auspicios: [SPOT] });
+  const p2 = construirGrilla({ anterior: p1.programas, candidatos: cs, ahora: 2000, horas: 8, historial: p1.historial, auspicios: [SPOT] });
+  const t = p2.programas.map(p => (p.a ? 'S' : 'V')).join('');
+  assert.ok(!t.includes('SS'), t);
+  const entre = t.split('S').slice(1, -1).map(x => x.length);
+  assert.ok(entre.length >= 1 && entre.every(n => n === 3), t);
+});
+
+test('sin auspicios la grilla es la de siempre', () => {
+  const cs = ['a', 'b'].map((x, i) => cand(x, 'C' + i, i));
+  const { programas } = construirGrilla({ anterior: [], candidatos: cs, ahora: 0, horas: 3 });
+  assert.ok(programas.every(p => !p.a));
+});

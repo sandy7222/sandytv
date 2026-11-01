@@ -61,7 +61,7 @@ console.log(`Candidatos reproducibles: ${candidatos.length} de ${vistos.size}`);
 // Protección: sin candidatos no se publica una grilla vacía (queda la anterior)
 if (!candidatos.length) { console.error('No quedó ningún video reproducible; no se escribe nada.'); process.exit(2); }
 
-const { programas, historial } = construirGrilla({ anterior: previo?.programas || [], candidatos, ahora, horas: config.horas ?? 48, historial: previo?.historial || {} });
+const { programas, historial } = construirGrilla({ anterior: previo?.programas || [], candidatos, ahora, horas: config.horas ?? 48, historial: previo?.historial || {}, auspicios: config.auspicios || [] });
 // Para que la caché no crezca sin fin: solo se guardan los videos que siguen en los feeds
 const videos = Object.fromEntries([...vistos.keys()].filter(id => cache[id]).map(id => [id, cache[id]]));
 const resultado = {
