@@ -7,6 +7,7 @@
   "minMinutos": 8,
   "maxMinutos": 180,
   "maxEdadDias": 150,
+  "subtitulos": ["AirgunGearShow", "Alexandre Bigunas", "Black Beard Projects", "Boat Canvas University", "CATCH-fishing", "David Canterbury", "FISH Knots", " FISHING knots", "Flex Coat", "Fretthold Baits", "GERMANICVS Inc.", "GP Hunting", "Joseph Teti", "KnifeJigs", "Lure Me In Custom Painted Crankbaits", "Marling Baits", "Nick Schade", "Noble Savage Outdoors", "NW Fishing Secrets", "REDTARGET NOVA VISTA REDFISH", "Richard Air Guns", "THE HUNTER'S DREAM SAFARI"],
   "auspicios": [{ "id": "el-guia", "nombre": "El Guía YA", "archivo": "spots/el-guia.mp4", "dur": 30, "cada": 1 }, { "id": "el-guia-2", "nombre": "El Guía YA", "archivo": "spots/el-guia-2.mp4", "dur": 30, "cada": 1 }],
   "creadores": [
     {

@@ -96,7 +96,7 @@ const videos = Object.fromEntries([...vistos.keys()].filter(id => cache[id]).map
 const resultado = {
   formato: 'sandytv-programacion-1',
   generado: new Date(ahora * 1000).toISOString(),
-  canal: { id: config.id, nombre: config.nombre },
+  canal: { id: config.id, nombre: config.nombre, subtitulos: config.subtitulos || [] },
   programas, historial, videos
 };
 await mkdir(salida, { recursive: true });
