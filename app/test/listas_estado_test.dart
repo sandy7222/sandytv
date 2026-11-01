@@ -140,6 +140,9 @@ void main() {
   });
 
   testWidgets('una lista agrupada muestra una fila por categoría, solo con sus canales', (t) async {
+    t.view.physicalSize = const Size(1280, 720); // pantalla de televisor (con más botones en el menú, 800x600 ya no entra)
+    t.view.devicePixelRatio = 1.0;
+    addTearDown(t.view.reset);
     final e = await crear({EstadoApp.claveListas: listasGuardadas(fijada: 'si')});
     e.listas.porId('familia')!.agrupar = true;
     e.listas.agregar('familia', 'N.ar');

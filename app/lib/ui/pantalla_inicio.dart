@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../logica/canal_web.dart';
+import '../main.dart' show urlCartelera;
 import '../modelos/cartelera.dart';
 import '../servicios/estado_app.dart';
 import 'dialogos.dart';
 import 'pantalla_ajustes.dart';
 import 'pantalla_canal.dart';
+import 'pantalla_canal_web.dart';
 import 'pantalla_en_vivo.dart';
 import 'pantalla_listas.dart';
 import 'pantalla_pelis.dart';
@@ -79,6 +82,10 @@ class PantallaInicio extends StatelessWidget {
                         _BotonMenu(
                           texto: '📡  En vivo',
                           alElegir: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PantallaEnVivo(estado: estado))),
+                        ),
+                        _BotonMenu(
+                          texto: '🎣  Pesca',
+                          alElegir: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PantallaCanalWeb(url: urlCanalPesca(Uri.parse(urlCartelera))))),
                         ),
                         if (estado.peliculas != null)
                           _BotonMenu(

@@ -540,6 +540,9 @@
   var prog = null;          // programacion.json: { canal, programas: [{ v, t, c, i, d }] }, tiempos en segundos UNIX
   var progActual = null;    // programa que está sonando
   var progTimer = null, progSalto = 0, progMalos = {};
+  var modoSolo = false;     // ?solo=pesca (la app del Noblex abre la página así): solo el canal propio, sin lista
+  // La app del Noblex pregunta esto al apretar Atrás: si hay algo para cerrar acá, lo cierra y devuelve true.
+  window.__atras = function () { if ($('panelProg').className === 'ver') { cerrarGrilla(); return true; } return false; };
   var DIAS_AR = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
   function ahoraSeg() { return Math.floor((Date.now() + desfase) / 1000); }
   function dosDig(n) { return (n < 10 ? '0' : '') + n; }
@@ -653,6 +656,7 @@
   }
   function cambiar(delta, auto) {
     var lista = canalesActivos(); if (!lista.length) return;
+    if (lista.length < 2) { if (actual) mostrarBarra(actual, ''); return; } // un solo canal: no hay a dónde cambiar
     if (!auto) saltos = 0;
     var i = lista.indexOf(actual);
     // el siguiente que no haya fallado en este televisor (si todos fallaron, se prueba el que sigue igual)
@@ -682,6 +686,7 @@
   function ocultarBarra() { ['barra', 'logoEsq', 'controles', 'zonaAnt', 'zonaSig'].forEach(function (id) { $(id).className = $(id).className.replace(' ver', ''); }); }
   function avisar(t) { var a = $('aviso'); a.textContent = t; a.style.display = 'block'; clearTimeout(timerAviso); timerAviso = setTimeout(function () { a.style.display = 'none'; }, 3000); }
   function volverALista() {
+    if (modoSolo) { cerrarGrilla(); return; } // en la app del Noblex, Atrás lo maneja la app
     intento++; limpiar(); video.pause(); video.removeAttribute('src'); apagarYt();
     $('reproductor').className = ''; $('inicio').style.display = 'flex';
     document.body.classList.remove('jugando'); window.scrollTo(0, 0);
@@ -933,7 +938,12 @@
     cargarListas();
     if (!datos.listas.length && canales.length) listaInicial(); // la primera vez: "Mi lista" con propuesta corta
     activaId = datos.fijada; // con una lista fijada, abre directo en esa lista
+    if (/[?&]solo=pesca/.test(location.search)) {
+      var propios = canales.filter(function (x) { return x.prog; });
+      if (propios.length) { canales = propios; modoSolo = true; }
+    }
     refrescar();
+    if (modoSolo) reproducir(canales[0]);
   }).catch(function (e) { $('lista').textContent = 'No pude cargar la cartelera: ' + e; });
 
   /* ---------- Detective: muestra en pantalla todo lo que el televisor le avisa a la página (para descubrir qué manda CH+ y CH−) ---------- */
