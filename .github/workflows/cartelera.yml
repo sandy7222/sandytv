@@ -64,6 +64,12 @@ jobs:
         # Si falla, la cartelera se publica igual (el buscador queda sin catálogo nuevo).
         run: node armar_catalogo.mjs salida || true
 
+      - name: Programación del canal propio (pesca)
+        if: steps.armar.outputs.publicar == 'si'
+        working-directory: cartelera
+        # Sin creadores cargados o si YouTube no responde, no se publica nada y queda la grilla anterior.
+        run: node armar_programacion.mjs --salida salida || true
+
       - name: Informe del día
         if: always()
         run: |
@@ -80,6 +86,7 @@ jobs:
           cp cartelera/salida/informe.json pagina/informe.json
           if [ -d cartelera/salida/logos ]; then cp -r cartelera/salida/logos pagina/logos; fi
           if [ -f cartelera/salida/catalogo.json ]; then cp cartelera/salida/catalogo.json pagina/catalogo.json; fi
+          if [ -f cartelera/salida/programacion.json ]; then cp cartelera/salida/programacion.json pagina/programacion.json; fi
           # Páginas web de SandyTV (por ahora, la prueba del navegador del Philips en /p/)
           cp -r web/. pagina/
 
