@@ -68,6 +68,8 @@ jobs:
         if: steps.armar.outputs.publicar == 'si'
         working-directory: cartelera
         # Sin creadores cargados o si YouTube no responde, no se publica nada y queda la grilla anterior.
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: node armar_programacion.mjs --salida salida || true
 
       - name: Informe del día

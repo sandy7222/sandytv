@@ -4,7 +4,7 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parsearSubidas, leerDatosVideo, construirGrilla } from './lib/programacion.mjs';
+import { parsearSubidas, leerDatosVideo, datosDesdeApi, construirGrilla } from './lib/programacion.mjs';
 import { conLimite } from './lib/pool.mjs';
 
 const aca = path.dirname(fileURLToPath(import.meta.url));
@@ -26,6 +26,17 @@ async function bajarTexto(url, ms = 25000) {
   return r.text();
 }
 
+// Con clave de la API oficial de YouTube (secreto YOUTUBE_API_KEY) no hace falta leer las páginas, que YouTube les bloquea a los servidores de GitHub.
+const CLAVE = process.env.YOUTUBE_API_KEY || '';
+async function api(recurso, params) {
+  const u = new URL('https://www.googleapis.com/youtube/v3/' + recurso);
+  for (const [k, v] of Object.entries({ ...params, key: CLAVE })) u.searchParams.set(k, v);
+  const r = await fetch(u, { signal: AbortSignal.timeout(25000) });
+  if (!r.ok) throw new Error('API ' + r.status + ' ' + (await r.text()).slice(0, 160).replace(/\s+/g, ' '));
+  return r.json();
+}
+if (CLAVE) console.log('Usando la API oficial de YouTube.');
+
 // Lo publicado la vez anterior: la grilla ya armada (para no mover lo que está en marcha) y lo ya averiguado de cada video
 let previo = null;
 if (!sinPrevia && config.urlPublicada) {
@@ -37,20 +48,38 @@ console.log(`Siguiendo ${config.creadores.length} creadores…`);
 const vistos = new Map();
 // De cada creador, los videos más nuevos de su lista de "subidas" (UULF…: sin shorts ni vivos), del más nuevo al más viejo
 const subidas = await conLimite(config.creadores, 4, async c => {
-  try { return { c, ids: parsearSubidas(await bajarTexto(`https://www.youtube.com/playlist?list=UULF${c.canal.slice(2)}`), config.videosPorCreador ?? 15) }; }
+  const max = config.videosPorCreador ?? 15;
+  if (CLAVE) {
+    try {
+      const j = await api('playlistItems', { part: 'contentDetails', playlistId: `UULF${c.canal.slice(2)}`, maxResults: String(max) });
+      return { c, ids: (j.items || []).map(x => x.contentDetails.videoId), fechas: Object.fromEntries((j.items || []).map(x => [x.contentDetails.videoId, Math.floor(Date.parse(x.contentDetails.videoPublishedAt) / 1000) || 0])) };
+    } catch (e) { console.error(`  ✗ ${c.nombre} (API): ${e.message}`); return { c, ids: [] }; }
+  }
+  try { return { c, ids: parsearSubidas(await bajarTexto(`https://www.youtube.com/playlist?list=UULF${c.canal.slice(2)}`), max) }; }
   catch (e) { console.error(`  ✗ ${c.nombre}: ${e.message}`); return { c, ids: [] }; }
 });
-for (const { c, ids } of subidas) {
+for (const { c, ids, fechas } of subidas) {
   console.log(`  ${c.nombre}: ${ids.length} videos`);
-  ids.forEach((id, rank) => { if (!vistos.has(id)) vistos.set(id, { id, creador: c.nombre, publicado: ahora - rank * 86400 }); });
+  ids.forEach((id, rank) => { if (!vistos.has(id)) vistos.set(id, { id, creador: c.nombre, publicado: fechas?.[id] || ahora - rank * 86400 }); });
 }
 
 const nuevos = [...vistos.keys()].filter(id => !cache[id]);
 console.log(`Videos a revisar: ${nuevos.length} (el resto ya estaba averiguado)`);
-await conLimite(nuevos, 6, async id => {
-  try { cache[id] = leerDatosVideo(await bajarTexto(`https://www.youtube.com/watch?v=${id}`)); }
-  catch (e) { /* sin dato: se reintenta la próxima vez */ }
-});
+if (CLAVE) {
+  const lotes = []; for (let i = 0; i < nuevos.length; i += 50) lotes.push(nuevos.slice(i, i + 50));
+  await conLimite(lotes, 3, async lote => {
+    try {
+      const j = await api('videos', { part: 'snippet,contentDetails,status', id: lote.join(','), maxResults: '50' });
+      const hallados = new Map((j.items || []).map(it => [it.id, it]));
+      for (const id of lote) cache[id] = datosDesdeApi(hallados.get(id)); // lo que la API no devuelve (borrado o privado) queda como no reproducible
+    } catch (e) { console.error('  ✗ videos (API): ' + e.message); }
+  });
+} else {
+  await conLimite(nuevos, 6, async id => {
+    try { cache[id] = leerDatosVideo(await bajarTexto(`https://www.youtube.com/watch?v=${id}`)); }
+    catch (e) { /* sin dato: se reintenta la próxima vez */ }
+  });
+}
 
 const minSeg = (config.minMinutos ?? 8) * 60, maxSeg = (config.maxMinutos ?? 180) * 60;
 const candidatos = [...vistos.values()]

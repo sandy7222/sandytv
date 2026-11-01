@@ -72,3 +72,18 @@ export function programaEn(programas, instante) {
   for (const p of programas) if (instante >= p.i && instante < p.i + p.d) return { programa: p, desde: Math.floor(instante - p.i) };
   return null;
 }
+
+/** Duración ISO 8601 de la API de YouTube (PT1H2M3S) a segundos; 0 si no se entiende. */
+export function duracionISO(s) {
+  const m = String(s || '').match(/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/);
+  return m ? (Number(m[1] || 0) * 3600 + Number(m[2] || 0) * 60 + Number(m[3] || 0)) : 0;
+}
+
+/** Un item de videos.list (part=snippet,contentDetails,status) al mismo formato que leerDatosVideo. */
+export function datosDesdeApi(it) {
+  if (!it) return { ok: false };
+  const dur = duracionISO(it.contentDetails?.duration);
+  const vivo = (it.snippet?.liveBroadcastContent || 'none') !== 'none';
+  const ok = it.status?.embeddable === true && it.status?.privacyStatus === 'public' && !vivo && dur > 0;
+  return ok ? { ok: true, dur, titulo: it.snippet?.title || undefined } : { ok: false };
+}

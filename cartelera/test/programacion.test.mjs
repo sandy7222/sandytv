@@ -107,3 +107,25 @@ test('sin auspicios la grilla es la de siempre', () => {
   const { programas } = construirGrilla({ anterior: [], candidatos: cs, ahora: 0, horas: 3 });
   assert.ok(programas.every(p => !p.a));
 });
+
+import { duracionISO, datosDesdeApi } from '../lib/programacion.mjs';
+
+test('duracionISO: PT#H#M#S a segundos', () => {
+  assert.equal(duracionISO('PT35M12S'), 2112);
+  assert.equal(duracionISO('PT1H2M3S'), 3723);
+  assert.equal(duracionISO('PT45S'), 45);
+  assert.equal(duracionISO('P0D'), 0);
+  assert.equal(duracionISO(undefined), 0);
+});
+
+const itemApi = (o = {}) => ({ id: 'AAAAAAAAAAA', snippet: { title: 'Pique de dorados', liveBroadcastContent: 'none' }, contentDetails: { duration: 'PT33M' }, status: { embeddable: true, privacyStatus: 'public', uploadStatus: 'processed' }, ...o });
+
+test('datosDesdeApi: reproducible incrustado, público y no vivo', () => {
+  assert.deepEqual(datosDesdeApi(itemApi()), { ok: true, dur: 1980, titulo: 'Pique de dorados' });
+  assert.equal(datosDesdeApi(itemApi({ status: { embeddable: false, privacyStatus: 'public' } })).ok, false);
+  assert.equal(datosDesdeApi(itemApi({ status: { embeddable: true, privacyStatus: 'private' } })).ok, false);
+  assert.equal(datosDesdeApi(itemApi({ snippet: { title: 'x', liveBroadcastContent: 'live' } })).ok, false);
+  assert.equal(datosDesdeApi(itemApi({ snippet: { title: 'x', liveBroadcastContent: 'upcoming' } })).ok, false);
+  assert.equal(datosDesdeApi(itemApi({ contentDetails: { duration: 'P0D' } })).ok, false);
+  assert.equal(datosDesdeApi(null).ok, false);
+});
