@@ -103,6 +103,7 @@
   #sensor { position:absolute; top:0; left:0; right:0; height:120px; z-index:1; display:none; }
   #reproductor.esyt .ytf, #reproductor.esyt #sensor { display:block; }
   #reproductor.esyt video { display:none; }
+  #reproductor.esprog .ytf { pointer-events:none; }
   #controles { z-index:3; position:absolute; top:24px; left:28px; display:flex; gap:10px; flex-wrap:wrap; max-width:60vw; opacity:0; transition:opacity .25s; }
   #controles.ver { opacity:1; }
   .zona { position:absolute; top:130px; bottom:150px; width:11vw; display:flex; align-items:center; justify-content:center; font-size:64px; color:#fff; cursor:pointer; opacity:0; transition:opacity .25s; z-index:2; user-select:none; }
@@ -567,7 +568,7 @@
     if (!a) { progActual = null; apagarYt(); avisar('La programación de este canal no está disponible ahora'); mostrarBarra(ch, 'Sin programación'); return; }
     if (a.p.a) { reproducirSpot(ch, mio, a); return; }
     progActual = a.p;
-    mostrarYt('https://www.youtube.com/embed/' + encodeURIComponent(a.p.v) + '?start=' + a.desde + '&autoplay=1&playsinline=1&rel=0&iv_load_policy=3&enablejsapi=1&origin=' + encodeURIComponent(location.origin), mio);
+    mostrarYt('https://www.youtube.com/embed/' + encodeURIComponent(a.p.v) + '?start=' + a.desde + '&autoplay=1&controls=0&disablekb=1&fs=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&enablejsapi=1&origin=' + encodeURIComponent(location.origin), mio);
     mostrarBarra(ch, 'Ahora: ' + recortar(a.p.t, 70) + ' · ' + a.p.c + (a.sig ? '   —   Sigue a las ' + horaAR(a.sig.i) + ': ' + recortar(a.sig.t, 50) : ''));
     // al terminar este programa se pasa al que sigue (el reloj manda; si el video termina antes, avisa YouTube)
     progTimer = setTimeout(function () { if (mio === intento) { progSalto = a.p.i + a.p.d; reproducir(ch); } }, Math.max(1000, (a.p.i + a.p.d - ahoraSeg()) * 1000 + 500));
@@ -632,7 +633,7 @@
     pintarFav();
     mostrarBarra(ch, 'Sintonizando…');
     // Vivo de YouTube: se ve incrustado; no se toca nada de su reproductor, el canal se cambia con las flechas de la pantalla.
-    $('reproductor').className = (ch.yt || ch.ytVideo || ch.prog) ? 'activo esyt' : 'activo';
+    $('reproductor').className = ch.prog ? 'activo esyt esprog' : (ch.yt || ch.ytVideo) ? 'activo esyt' : 'activo';
     if (ch.prog) { delete fallos[ch.id]; saltos = 0; reproducirProg(ch, mio); return; }
     if (ch.yt || ch.ytVideo) {
       mostrarYt((ch.yt ? 'https://www.youtube.com/embed/live_stream?channel=' + encodeURIComponent(ch.yt) : 'https://www.youtube.com/embed/' + encodeURIComponent(ch.ytVideo) + '?') + '&autoplay=1&playsinline=1&rel=0&iv_load_policy=3&enablejsapi=1&origin=' + encodeURIComponent(location.origin), mio);
