@@ -132,3 +132,5 @@
 ## Problemas conocidos
 
 - (ninguno todavía)
+
+- **Zapping sin anuncios al pasar (2026-11-01, commit local, sin subir):** el dueño notó que cada cambio de canal traía un anuncio de YouTube (cada video pedido puede traer uno; no se pueden quitar ni tapar, van con el reproductor oficial). Cambio en `web/p/index.html` (`mostrarYt`, `ESPERA_ZAPPING = 2000`): al entrar a un canal de YouTube la imagen queda tapada y el video se pide recién si te quedás 2 segundos; si cambiás antes, el pedido se cancela. Aplica a todos los canales de YouTube de la página. Probado en PC: 4 entradas seguidas cada ~0,5 s → ningún pedido a YouTube; el video se pidió 2 s después de la última. Para cambiar la espera: `ESPERA_ZAPPING`. Sigue pendiente probar en el Philips y en el Noblex (no necesita APK nuevo: la página es la misma).

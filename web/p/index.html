@@ -496,7 +496,7 @@
   var timerCortina = null;
   function apagarYt() {
     var f = $('yt'); f.onload = null; f.className = 'ytf'; f.src = 'about:blank';
-    clearTimeout(timerCortina); $('cortina').className = '';
+    clearTimeout(timerPedido); clearTimeout(timerCortina); $('cortina').className = '';
     clearTimeout(progTimer); progActual = null;
   }
   var ytCargado = false; // el reproductor nuevo ya cargó (los avisos anteriores son del canal viejo y no valen)
@@ -526,15 +526,23 @@
       ytEsperando = null; clearTimeout(timerCortina); f.onload = null; f.className = 'ytf'; c.className = '';
     }
     ytEsperando = destapar; ytCargado = false;
-    f.onload = function () {
-      f.onload = null; ytCargado = true;
-      try { f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }), '*'); } catch (x) {}
-      // por si YouTube no avisa (o ya había empezado), se destapa igual después de un rato
-      timerCortina = setTimeout(destapar, 5000);
-    };
-    timerCortina = setTimeout(destapar, 12000); // y si el canal ni carga, no queda tapado para siempre
-    f.src = url;
+    // Zapping: el video se pide recién si te quedás ~2 segundos en el canal. Cada pedido puede traer un anuncio de YouTube,
+    // y así pasar rápido por varios canales no dispara ninguno.
+    f.onload = null; f.src = 'about:blank';
+    clearTimeout(timerPedido);
+    timerPedido = setTimeout(function () {
+      if (mio !== intento) return;
+      f.onload = function () {
+        f.onload = null; ytCargado = true;
+        try { f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }), '*'); } catch (x) {}
+        // por si YouTube no avisa (o ya había empezado), se destapa igual después de un rato
+        timerCortina = setTimeout(destapar, 5000);
+      };
+      timerCortina = setTimeout(destapar, 12000); // y si el canal ni carga, no queda tapado para siempre
+      f.src = url;
+    }, ESPERA_ZAPPING);
   }
+  var timerPedido = null, ESPERA_ZAPPING = 2000;
 
   /* ---------- Canal propio con programación (Pesca y Camping): sigue el reloj de Argentina, como un canal de aire ---------- */
   var prog = null;          // programacion.json: { canal, programas: [{ v, t, c, i, d }] }, tiempos en segundos UNIX
