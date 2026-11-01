@@ -594,9 +594,9 @@
   function sumarProg() {
     if (!prog || !prog.programas || !prog.programas.length) return;
     var max = 0; canales.forEach(function (x) { if (x.numero > max) max = x.numero; });
-    var nombre = prog.canal && prog.canal.nombre ? prog.canal.nombre : 'Pesca y Camping';
+    var nombre = prog.canal && prog.canal.nombre ? prog.canal.nombre : 'Sandy Caza y Pesca TV';
     if (!categorias.some(function (g) { return g.id === 'pesca'; })) categorias.push({ id: 'pesca', nombre: 'Pesca y Camping' });
-    canales.push({ id: (prog.canal && prog.canal.id) || 'sandytv.pesca', numero: max + 1, nombre: nombre, emisora: 'Canal propio · videos de YouTube', categoria: 'pesca', logo: '', prog: true, enlaces: [{ url: 'https://www.youtube.com/', puntaje: 0 }] });
+    canales.push({ id: (prog.canal && prog.canal.id) || 'sandytv.pesca', numero: max + 1, nombre: nombre, emisora: 'Canal propio · videos de YouTube', categoria: 'pesca', logo: 'canal-pesca.webp', prog: true, enlaces: [{ url: 'https://www.youtube.com/', puntaje: 0 }] });
   }
 
   function reproducir(ch, dir) {

@@ -1,7 +1,7 @@
 {
   "_ayuda": "Canal propio hecho con los videos más nuevos de estos creadores de YouTube. creadores: [{ nombre, canal }] donde canal es el identificador (empieza con UC). Se renueva cada 6 horas.",
   "id": "sandytv.pesca",
-  "nombre": "Pesca y Camping",
+  "nombre": "Sandy Caza y Pesca TV",
   "urlPublicada": "https://sandy7222.github.io/sandytv/programacion.json",
   "horas": 48,
   "minMinutos": 8,
