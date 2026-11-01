@@ -126,6 +126,8 @@
 
   /* Reloj (abajo a la izquierda) y diagnóstico de teclas (abajo a la derecha) */
   #reloj { position:fixed; left:24px; bottom:22px; font-size:30px; font-weight:700; background:#000a; padding:6px 16px; border-radius:12px; z-index:4; display:none; }
+  #clima { position:fixed; right:24px; bottom:22px; font-size:30px; font-weight:700; background:#000a; padding:6px 16px; border-radius:12px; z-index:4; display:none; }
+  #barra.conClima { padding-right:190px; }
   /* Leyenda de la última tecla: solo para diagnosticar. Oculta, salvo que se abra la página con ?diag */
   #tecla { display:none; position:fixed; right:12px; bottom:8px; font-size:12px; color:#fff9; background:#0008; padding:2px 8px; border-radius:6px; z-index:5; }
   body.diag #tecla { display:block; }
@@ -197,6 +199,7 @@
 </div>
 <div id="relleno"></div>
 <div id="reloj"></div>
+<div id="clima"></div>
 <div id="tecla">Apretá una tecla del control</div>
 
 <script>
@@ -265,7 +268,8 @@
     var r = $('reloj'), v = relojVisible();
     r.style.display = v ? 'block' : 'none';
     r.textContent = horaArgentina();
-    $('barra').className = $('barra').className.replace(' conReloj', '') + (v ? ' conReloj' : '');
+    $('barra').className = $('barra').className.replace(' conReloj', '').replace(' conClima', '') + (v ? ' conReloj' : '') + (v && clima ? ' conClima' : '');
+    $('clima').style.display = v && clima ? 'block' : 'none';
     var t = '🕒 Reloj: ' + (v ? 'sí' : 'no');
     $('bReloj').textContent = t; $('bRelojP').textContent = v ? '🕒 Ocultar reloj' : '🕒 Mostrar reloj';
   }
@@ -279,6 +283,43 @@
   aplicarTamano();
   $('bRelojP').onclick = alternarReloj;
   setInterval(pintarReloj, 1000);
+
+  /* ---------- Clima (abajo a la derecha): temperatura e ícono del tiempo actual, de Open-Meteo (gratis, sin clave) ----------
+     Lugar: el del televisor si deja saber la ubicación; si no, el último que se supo; si no, Buenos Aires. Si no hay dato, no se muestra nada. */
+  var clima = null, LUGAR_POR_DEFECTO = { lat: -34.61, lon: -58.38 };
+  function iconoClima(cod, dia) {
+    if (cod === 0) return dia ? '☀️' : '🌙';
+    if (cod === 1 || cod === 2) return dia ? '🌤️' : '☁️';
+    if (cod === 3) return '☁️';
+    if (cod === 45 || cod === 48) return '🌫️';
+    if (cod >= 51 && cod <= 57) return '🌦️';
+    if ((cod >= 61 && cod <= 67) || (cod >= 80 && cod <= 82)) return '🌧️';
+    if ((cod >= 71 && cod <= 77) || cod === 85 || cod === 86) return '❄️';
+    if (cod >= 95) return '⛈️';
+    return null; // código desconocido: sin ícono antes que uno equivocado
+  }
+  function bajarClima(lat, lon) {
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat.toFixed(2) + '&longitude=' + lon.toFixed(2) + '&current=temperature_2m,weather_code,is_day&timezone=auto')
+      .then(function (r) { return r.json(); }).then(function (j) {
+        var c = j && j.current; if (!c || typeof c.temperature_2m !== 'number') return;
+        var ic = iconoClima(c.weather_code, c.is_day === 1);
+        clima = Math.round(c.temperature_2m) + '°C' + (ic ? ' ' + ic : '');
+        $('clima').textContent = clima; pintarReloj();
+      }).catch(function () {});
+  }
+  function actualizarClima() {
+    var g = leer('sandytv_lugar'), guardado = null; try { guardado = g ? JSON.parse(g) : null; } catch (e) {}
+    var lugar = guardado || LUGAR_POR_DEFECTO;
+    bajarClima(lugar.lat, lugar.lon);
+    try {
+      navigator.geolocation.getCurrentPosition(function (p) {
+        guardar('sandytv_lugar', JSON.stringify({ lat: p.coords.latitude, lon: p.coords.longitude }));
+        bajarClima(p.coords.latitude, p.coords.longitude);
+      }, function () {}, { timeout: 8000, maximumAge: 3600000 });
+    } catch (e) {}
+  }
+  actualizarClima();
+  setInterval(actualizarClima, 900000);
 
   /* ---------- El puntero se esconde solo a los 30 segundos sin moverse ---------- */
   var timerCursor = null;
