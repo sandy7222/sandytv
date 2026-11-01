@@ -138,7 +138,7 @@
 <div id="inicio">
   <div id="cab">
     <div class="logo">Sandy<b>TV</b></div>
-    <span><button id="bTamano" type="button">🔎 Tamaño: grande</button><button id="bBus" type="button">🔍 Buscar canales</button><button id="bYt" type="button">＋ Canal de YouTube</button><button id="bDet" type="button">🔬 Detective: no</button><button id="bCampo" type="button">⌨ Campo: no</button><button id="bControl" type="button" onclick="location.href='control/'">🎛 Aprender el control</button><button id="bReloj" type="button">🕒 Reloj: sí</button></span>
+    <span><button id="bTamano" type="button">🔎 Tamaño: grande</button><button id="bBus" type="button">🔍 Buscar canales</button><button id="bYt" type="button">＋ Canal de YouTube</button><button id="bDet" type="button">🔬 Detective: no</button><button id="bCampo" type="button">⌨ Campo: no</button><button id="bControl" type="button" onclick="location.href='control/'">🎛 Aprender el control</button><button id="bReloj" type="button">🕒 Reloj: sí</button><button id="bCiudad" type="button">📍 Ciudad: Buenos Aires</button></span>
   </div>
   <div id="listasBar"></div>
   <div id="cats"></div>
@@ -285,8 +285,23 @@
   setInterval(pintarReloj, 1000);
 
   /* ---------- Clima (abajo a la derecha): temperatura e ícono del tiempo actual, de Open-Meteo (gratis, sin clave) ----------
-     Lugar: el del televisor si deja saber la ubicación; si no, el último que se supo; si no, Buenos Aires. Si no hay dato, no se muestra nada. */
-  var clima = null, LUGAR_POR_DEFECTO = { lat: -34.61, lon: -58.38 };
+     Lugar: la ciudad que se elige en el menú (📍 Ciudad); Buenos Aires por defecto. Si no hay dato, no se muestra nada. */
+  var clima = null;
+  var CIUDADES = [
+    ['Buenos Aires', -34.61, -58.38], ['La Plata', -34.92, -57.95], ['Mar del Plata', -38.00, -57.56], ['Bahía Blanca', -38.72, -62.27],
+    ['Rosario', -32.95, -60.64], ['Santa Fe', -31.63, -60.70], ['Paraná', -31.73, -60.53], ['Concordia', -31.39, -58.02],
+    ['Córdoba', -31.42, -64.18], ['Mendoza', -32.89, -68.84], ['San Juan', -31.54, -68.54], ['San Luis', -33.30, -66.34],
+    ['Tucumán', -26.81, -65.22], ['Salta', -24.78, -65.41], ['Jujuy', -24.19, -65.30], ['Santiago del Estero', -27.79, -64.26],
+    ['Corrientes', -27.47, -58.83], ['Resistencia', -27.45, -58.99], ['Posadas', -27.37, -55.90], ['Formosa', -26.19, -58.18],
+    ['Neuquén', -38.95, -68.06], ['Santa Rosa', -36.62, -64.29], ['Viedma', -40.81, -62.99], ['Comodoro Rivadavia', -45.86, -67.48], ['Ushuaia', -54.80, -68.30]
+  ];
+  function ciudadActual() { var n = leer('sandytv_ciudad'); for (var i = 0; i < CIUDADES.length; i++) if (CIUDADES[i][0] === n) return CIUDADES[i]; return CIUDADES[0]; }
+  $('bCiudad').onclick = function () {
+    var i = CIUDADES.indexOf(ciudadActual());
+    guardar('sandytv_ciudad', CIUDADES[(i + 1) % CIUDADES.length][0]);
+    $('bCiudad').textContent = '📍 Ciudad: ' + ciudadActual()[0]; actualizarClima();
+  };
+  $('bCiudad').textContent = '📍 Ciudad: ' + ciudadActual()[0];
   function iconoClima(cod, dia) {
     if (cod === 0) return dia ? '☀️' : '🌙';
     if (cod === 1 || cod === 2) return dia ? '🌤️' : '☁️';
@@ -307,17 +322,7 @@
         $('clima').textContent = clima; pintarReloj();
       }).catch(function () {});
   }
-  function actualizarClima() {
-    var g = leer('sandytv_lugar'), guardado = null; try { guardado = g ? JSON.parse(g) : null; } catch (e) {}
-    var lugar = guardado || LUGAR_POR_DEFECTO;
-    bajarClima(lugar.lat, lugar.lon);
-    try {
-      navigator.geolocation.getCurrentPosition(function (p) {
-        guardar('sandytv_lugar', JSON.stringify({ lat: p.coords.latitude, lon: p.coords.longitude }));
-        bajarClima(p.coords.latitude, p.coords.longitude);
-      }, function () {}, { timeout: 8000, maximumAge: 3600000 });
-    } catch (e) {}
-  }
+  function actualizarClima() { var c = ciudadActual(); bajarClima(c[1], c[2]); } // la ciudad se elige a mano (botón del menú); Buenos Aires si no se eligió
   actualizarClima();
   setInterval(actualizarClima, 900000);
 
