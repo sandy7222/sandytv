@@ -7,5 +7,306 @@
   "minMinutos": 8,
   "maxMinutos": 180,
   "maxEdadDias": 150,
-  "creadores": []
+  "creadores": [
+    {
+      "nombre": "AirgunGearShow",
+      "canal": "UC0sDbitn84cLfdEBQnS7KbQ"
+    },
+    {
+      "nombre": "Alexandre Bigunas",
+      "canal": "UCw8RCom8H8R6ZYfFd9qM8-g"
+    },
+    {
+      "nombre": "aventuras de río",
+      "canal": "UCIhK6jn3mnnSNII57qUhMVQ"
+    },
+    {
+      "nombre": "Bastardos en Kayak",
+      "canal": "UCsz4-6Ws3KkBRbAenROoydQ"
+    },
+    {
+      "nombre": "Bersa Oficial",
+      "canal": "UCxDJVSB13LfRzLwto31xsxg"
+    },
+    {
+      "nombre": "Black Beard Projects",
+      "canal": "UC8q2GgxOUS_Dzd5KIYeJQIw"
+    },
+    {
+      "nombre": "Boat Canvas University",
+      "canal": "UC8cc9cEeOsUoRxLdjZs_Shg"
+    },
+    {
+      "nombre": "Brian De Pesca Oficial",
+      "canal": "UCr8D6gjLbh3Xx3jtAx12_YQ"
+    },
+    {
+      "nombre": "CATCH-fishing",
+      "canal": "UCYG9GiKTixJbbJ_777nNJXQ"
+    },
+    {
+      "nombre": "Caza Y Pesca",
+      "canal": "UCl21P-G1j6AsSzXjwqEyHLw"
+    },
+    {
+      "nombre": "cazaTV",
+      "canal": "UCRtJLIofcL0MOQM_xasihpw"
+    },
+    {
+      "nombre": "Chaco Pesca",
+      "canal": "UCgLbPc1KRGgT6c8hCCDL1Wg"
+    },
+    {
+      "nombre": "COMO YO LO SIENTO",
+      "canal": "UCqXyb7B-Xc_0lTKgvK0K_Ag"
+    },
+    {
+      "nombre": "David Canterbury",
+      "canal": "UCfa-XVztQrDlf-2v1UUdkwg"
+    },
+    {
+      "nombre": "Dilane Salvaje ",
+      "canal": "UCUkfzLueiHgo1NJPCvxHu9Q"
+    },
+    {
+      "nombre": "El Señuelo",
+      "canal": "UCO5WPZC0lW48q2jJeUO7GQg"
+    },
+    {
+      "nombre": "El Viaje de Bohemia",
+      "canal": "UC2AuCJkzZMnfaO9upz-S4tA"
+    },
+    {
+      "nombre": "Entre Juncos",
+      "canal": "UCEPzaR7Dcbb8yqSTZlrPs-g"
+    },
+    {
+      "nombre": "Estamos Tacticos",
+      "canal": "UC0CPBbzgrCQE_c4WlwZ3YtQ"
+    },
+    {
+      "nombre": "FISH Knots",
+      "canal": "UC8CebKfikpRr9pl_wMiI-Vw"
+    },
+    {
+      "nombre": " FISHING knots",
+      "canal": "UCgA54E86VmbuWBhfxTfD6rg"
+    },
+    {
+      "nombre": "Flex Coat",
+      "canal": "UCVXMuMB6r26I8-ZshIb-ccg"
+    },
+    {
+      "nombre": "Fogón Amigo",
+      "canal": "UCqUizy_TSyfG8cAA2BSJX5w"
+    },
+    {
+      "nombre": "Fretthold Baits",
+      "canal": "UCp6yPQk0eN6egwmfdsjZv2Q"
+    },
+    {
+      "nombre": "FUERA DEL ASFALTO",
+      "canal": "UCohg5YkKuzLzcFPSZCK7wLg"
+    },
+    {
+      "nombre": "GERMANICVS Inc.",
+      "canal": "UCfT5MrtJ0Cy-mBSJi7-jwwQ"
+    },
+    {
+      "nombre": "GP Hunting",
+      "canal": "UCW-agmFlCvjsi0mwSZY5XQQ"
+    },
+    {
+      "nombre": "HAR-PESCA  con Hugo",
+      "canal": "UCQoaLqgHeZjHT9vMa2uEojA"
+    },
+    {
+      "nombre": "Harinado Los Primos",
+      "canal": "UCL01jvgWdiXYGnbJ0woDkqw"
+    },
+    {
+      "nombre": "Ivan Scano",
+      "canal": "UCNq25Sx0sv7PFOGwr0rv4EA"
+    },
+    {
+      "nombre": "Joseph Teti",
+      "canal": "UCddJbv3RNbg3CKdlzKKeUUg"
+    },
+    {
+      "nombre": "JOX 90",
+      "canal": "UCfsq2wg5dEB9lJFGNeIRFQw"
+    },
+    {
+      "nombre": "Juan caza y pesca",
+      "canal": "UCUjex3tq5rStFp4yJBx51nA"
+    },
+    {
+      "nombre": "Julian 545",
+      "canal": "UCeDwIiXM9qgjWA38VqO-Onw"
+    },
+    {
+      "nombre": "KnifeJigs",
+      "canal": "UCAlEP2XL8qgaECh9pRJ2ydA"
+    },
+    {
+      "nombre": "LAUTARO IGLESIAS",
+      "canal": "UCu9BE0t4M_a_3WP38rMSyaQ"
+    },
+    {
+      "nombre": "Leandro Goretta",
+      "canal": "UC_0t5xdgCgbx5eh9ZGmh_9A"
+    },
+    {
+      "nombre": "LO QUE SE PESCA SE COME",
+      "canal": "UCRoqOCK8Z8XSj-F8VXp4Vug"
+    },
+    {
+      "nombre": "Lupe Lofish",
+      "canal": "UC_xr0US3HpiKoYLDlkOLX3g"
+    },
+    {
+      "nombre": "Lure Me In Custom Painted Crankbaits",
+      "canal": "UCYhLtEMVKsfrUj8wc9qUtbA"
+    },
+    {
+      "nombre": "Marling Baits",
+      "canal": "UCa-xsrfvLmgaUfPFE1TK7OQ"
+    },
+    {
+      "nombre": "martin caressi",
+      "canal": "UCA4lxRm0KYoqfz4Qt4Nrg7Q"
+    },
+    {
+      "nombre": "Mauro Ink - Pesca con Mosca",
+      "canal": "UCeKFWqUueZRwdenalSMXwcQ"
+    },
+    {
+      "nombre": "MichopescA",
+      "canal": "UCiBxUdJC7JJEFK-e7iuFehw"
+    },
+    {
+      "nombre": "Minuto De Pesca",
+      "canal": "UC9-h8eRLWEQo3_nbegthDMg"
+    },
+    {
+      "nombre": "MJ- Pesca",
+      "canal": "UCBOpZmxPreEBmHyjGGtyVnA"
+    },
+    {
+      "nombre": "Momento de pesca",
+      "canal": "UCQoe-oWe6eFQTUnL8s3QBjw"
+    },
+    {
+      "nombre": "NAUTICA SAVINO",
+      "canal": "UC-vwHFrXCunyKl6U5sRjrYg"
+    },
+    {
+      "nombre": "Nick Schade",
+      "canal": "UCE4SrExIQ2h7tK_dUCXy4Fw"
+    },
+    {
+      "nombre": "NICO REYNOSO ",
+      "canal": "UC0QyjUSM9-mV4M1TFKc1EWQ"
+    },
+    {
+      "nombre": "Noble Savage Outdoors",
+      "canal": "UCrh6cEUPy-_41016WLzfITQ"
+    },
+    {
+      "nombre": "NW Fishing Secrets",
+      "canal": "UC0VHsTdbzwPt3ysehIoXFgA"
+    },
+    {
+      "nombre": "Pesca con Miguel Vinciguerra",
+      "canal": "UC-7nNYCFf2aLBj4C-TKoM2w"
+    },
+    {
+      "nombre": "Pesca Hecha en Casa (Daniel Hernandez)",
+      "canal": "UCBDCTX8Tr4e5RMhqw-B7ENg"
+    },
+    {
+      "nombre": "Pesca Pirañon",
+      "canal": "UCcodx711MA_kvzxZiXcO8ug"
+    },
+    {
+      "nombre": "PESCA y AVENTURA con FABIAN MATEOS",
+      "canal": "UCl3snDEEPjx67LPa5pwoNbg"
+    },
+    {
+      "nombre": "Pesca3D",
+      "canal": "UCKRfsJ8Kf47ZYY528NaAY_Q"
+    },
+    {
+      "nombre": "PescaMas",
+      "canal": "UCWUwMdAHLp1_reFUVKkDoCA"
+    },
+    {
+      "nombre": "Pescamotas",
+      "canal": "UCtZsrYPZSmjQRS0DPhh49RA"
+    },
+    {
+      "nombre": "Pique De Ensueño - lauti Rodríguez ",
+      "canal": "UC-u9byurp95Ika5wMVCKhsQ"
+    },
+    {
+      "nombre": "Que tal Pesca",
+      "canal": "UC-FJZBhUdG4FRq5L-ydt84w"
+    },
+    {
+      "nombre": "REDTARGET NOVA VISTA REDFISH",
+      "canal": "UCHEJpolfyVomc7SoOWuhQyg"
+    },
+    {
+      "nombre": "Rhodani Pesca",
+      "canal": "UCH3gwDwAYtEbV-T-GH7RjnA"
+    },
+    {
+      "nombre": "Ricardo “Surkayak” Martos",
+      "canal": "UCsP4ZqnHbhxfFtEAJ8LP4Nw"
+    },
+    {
+      "nombre": "Richard Air Guns",
+      "canal": "UCe-ICmvLUYA2BLD8TMcFmQg"
+    },
+    {
+      "nombre": "Rincon del litoral",
+      "canal": "UC18mD9tdRbGioNXvMocF6sg"
+    },
+    {
+      "nombre": "Río Negro Pesca",
+      "canal": "UCIFiQq0RbthhVmMrGsH2uAA"
+    },
+    {
+      "nombre": "Salida de Pesca TV",
+      "canal": "UCXcs15bDKIf8DMzcIqpiH-g"
+    },
+    {
+      "nombre": "Santa Fish",
+      "canal": "UCm_FxqFL-IAHZqJgE1a-TsA"
+    },
+    {
+      "nombre": "THE HUNTER'S DREAM SAFARI",
+      "canal": "UCOXsVysiiLHrUuFY4NYMoig"
+    },
+    {
+      "nombre": "Tiempo De Pesca - Pablo y Valentin Di Santi",
+      "canal": "UCi2jDD37IhOZhugRkKxye2g"
+    },
+    {
+      "nombre": "Todocaza | José Guirao",
+      "canal": "UCkdk4LzZsKfd7JxHtTidjug"
+    },
+    {
+      "nombre": "Va Plomo",
+      "canal": "UCQKKY7TZxy7P1eedfrpvRiw"
+    },
+    {
+      "nombre": "Wilmar Merino Pesca",
+      "canal": "UCdYmruuENCWt4wS74nh8FgQ"
+    },
+    {
+      "nombre": "ZAZ PESCA",
+      "canal": "UCSddZ45A4PRSC2euPUZbX5A"
+    }
+  ]
 }
