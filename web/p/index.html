@@ -457,7 +457,7 @@
   function dibujarLista(sinMedir) {
     var cont = $('lista'); cont.innerHTML = ''; $('nav').innerHTML = '';
     var l = activa();
-    var mostrar = l ? canalesDeLista(l) : visibles().filter(function (ch) { return ch.categoria === catActual; });
+    var mostrar = l ? canalesDeLista(l) : visibles().filter(function (ch) { return ch.categoria === catActual || (catActual === 'argentina' && ch.prog); }); // el canal propio tambien aparece entre los argentinos
     if (l && !mostrar.length) { cont.textContent = 'Esta lista está vacía. Elegí "Todos los canales" y tocá la ☆ de los canales que quieras agregar.'; return; }
     var dest = destino();
     var paginas = Math.max(1, Math.ceil(mostrar.length / porPagina));
