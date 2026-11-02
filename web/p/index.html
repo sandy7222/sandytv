@@ -49,7 +49,7 @@
   #listasBar button, #cats button { font-size:15px; padding:6px 11px; border-width:2px; }
   #listasBar .sep { color:var(--suave); font-size:12px; margin-left:8px; }
   #listasBar input { font-size:13px; padding:6px 10px; width:190px; }
-  #lista { flex:1; overflow:hidden; display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:12px; align-content:start; padding:14px 8px 0 0; }
+  #lista { flex:1; overflow:hidden; display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:12px; align-content:start; padding:14px 64px 0 64px; }
   .fila { display:flex; gap:6px; }
   .acciones { flex:none; display:flex; flex-direction:column; gap:4px; }
   .acciones button { flex:1; padding:0 14px; font-size:24px; color:var(--acento); }
@@ -76,8 +76,12 @@
   .res small { color:var(--suave); font-size:14px; } .res button { flex:none; }
   #busMsg { color:var(--acento); font-size:16px; min-height:22px; margin:4px 0; }
   #busPegar { margin-top:8px; padding-top:10px; border-top:1px solid #263248; }
-  #nav { display:flex; align-items:center; justify-content:center; gap:16px; padding:8px 0 0; }
-  #nav button { font-size:20px; padding:8px 26px; } #nav span { font-size:18px; color:var(--suave); min-width:170px; text-align:center; }
+  #nav { display:flex; align-items:center; justify-content:center; padding:4px 0 0; }
+  #nav span { font-size:16px; color:var(--suave); text-align:center; }
+  /* Páginas: flechas transparentes pegadas a los márgenes (no ocupan lugar de la lista); la lista deja 64px libres a cada lado */
+  #nav button.flecha { position:absolute; top:34%; height:30%; width:56px; padding:0; background:transparent; border:0; border-radius:14px; font-size:54px; line-height:1; color:var(--acento); opacity:.55; z-index:2; }
+  #nav button.flecha:hover { opacity:1; background:#22D3EE22; }
+  #nav button.flecha.ant { left:4px; } #nav button.flecha.sig { right:4px; }
   body.sincursor, body.sincursor * { cursor:none !important; }
   .canal { flex:1; display:flex; align-items:center; gap:12px; text-align:left; padding:10px 14px; min-width:0; }
   .canal img, .canal .sinlogo { width:96px; height:60px; object-fit:contain; background:#fff2; border-radius:8px; flex:none; }
@@ -479,9 +483,9 @@
     }
     if (paginas > 1) {
       var nav = $('nav');
-      nav.appendChild(btn('◀ Anteriores', false, function () { pagina = (pagina + paginas - 1) % paginas; dibujarLista(); }));
+      var fa = btn('‹', false, function () { pagina = (pagina + paginas - 1) % paginas; dibujarLista(); }); fa.className = 'flecha ant'; fa.title = 'Anteriores'; nav.appendChild(fa);
       var sp = document.createElement('span'); sp.textContent = 'Página ' + (pagina + 1) + ' de ' + paginas + ' (' + mostrar.length + ' canales)'; nav.appendChild(sp);
-      nav.appendChild(btn('Siguientes ▶', false, function () { pagina = (pagina + 1) % paginas; dibujarLista(); }));
+      var fs = btn('›', false, function () { pagina = (pagina + 1) % paginas; dibujarLista(); }); fs.className = 'flecha sig'; fs.title = 'Siguientes'; nav.appendChild(fs);
     }
   }
 
