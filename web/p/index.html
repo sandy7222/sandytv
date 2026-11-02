@@ -49,7 +49,7 @@
   #listasBar button, #cats button { font-size:15px; padding:6px 11px; border-width:2px; }
   #listasBar .sep { color:var(--suave); font-size:12px; margin-left:8px; }
   #listasBar input { font-size:13px; padding:6px 10px; width:190px; }
-  #lista { flex:1; overflow:hidden; display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:12px; align-content:start; padding:14px 64px 0 64px; }
+  #lista { flex:1; overflow:hidden; display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:12px; align-content:start; padding:14px 44px 0 44px; }
   .fila { display:flex; gap:6px; }
   .acciones { flex:none; display:flex; flex-direction:column; gap:4px; }
   .acciones button { flex:1; padding:0 14px; font-size:24px; color:var(--acento); }
@@ -78,8 +78,8 @@
   #busPegar { margin-top:8px; padding-top:10px; border-top:1px solid #263248; }
   #nav { display:flex; align-items:center; justify-content:center; padding:4px 0 0; }
   #nav span { font-size:16px; color:var(--suave); text-align:center; }
-  /* Páginas: flechas transparentes pegadas a los márgenes (no ocupan lugar de la lista); la lista deja 64px libres a cada lado */
-  #nav button.flecha { position:absolute; top:34%; height:30%; width:56px; padding:0; background:transparent; border:0; border-radius:14px; font-size:54px; line-height:1; color:var(--acento); opacity:.55; z-index:2; }
+  /* Páginas: flechas transparentes pegadas a los márgenes (no ocupan lugar de la lista); la lista deja 44px libres a cada lado */
+  #nav button.flecha { position:absolute; top:34%; height:30%; width:40px; padding:0; background:transparent; border:0; border-radius:14px; font-size:46px; line-height:1; color:var(--acento); opacity:.55; z-index:2; }
   #nav button.flecha:hover { opacity:1; background:#22D3EE22; }
   #nav button.flecha.ant { left:4px; } #nav button.flecha.sig { right:4px; }
   body.sincursor, body.sincursor * { cursor:none !important; }
@@ -88,7 +88,9 @@
   .canal .sinlogo { display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:800; color:var(--acento); background:#22D3EE22; }
   .canal span { font-size:22px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .canal small { color:var(--suave); display:block; font-size:16px; font-weight:400; }
-  #pie { color:var(--suave); font-size:15px; padding-top:8px; }
+  /* La leyenda de ayuda ocupaba ~20% de la pantalla: ahora está escondida y se ve con "❓ Ayuda" del menú (encima de la lista, no la corre) */
+  #pie { display:none; position:absolute; left:36px; right:36px; bottom:14px; z-index:6; background:#0B1020f7; border:2px solid #263248; border-radius:14px; padding:14px 18px; color:var(--suave); font-size:17px; }
+  #pie.ver { display:block; }
 
   /* Reproductor a pantalla completa */
   #reproductor { position:fixed; inset:0; background:#000; display:none; }
@@ -147,7 +149,7 @@
 <div id="inicio">
   <div id="cab">
     <div class="logo">Sandy<b>TV</b></div>
-    <button id="bMenu" type="button">☰ Menú</button><div id="menuCab"><button id="bTamano" type="button">🔎 Tamaño: grande</button><button id="bBus" type="button">🔍 Buscar canales</button><button id="bYt" type="button">＋ Canal de YouTube</button><button id="bDet" type="button">🔬 Detective: no</button><button id="bCampo" type="button">⌨ Campo: no</button><button id="bControl" type="button" onclick="location.href='control/'">🎛 Aprender el control</button><button id="bReloj" type="button">🕒 Reloj: sí</button><button id="bCiudad" type="button">📍 Ciudad: Buenos Aires</button></div>
+    <button id="bMenu" type="button">☰ Menú</button><div id="menuCab"><button id="bTamano" type="button">🔎 Tamaño: grande</button><button id="bBus" type="button">🔍 Buscar canales</button><button id="bYt" type="button">＋ Canal de YouTube</button><button id="bDet" type="button">🔬 Detective: no</button><button id="bCampo" type="button">⌨ Campo: no</button><button id="bControl" type="button" onclick="location.href='control/'">🎛 Aprender el control</button><button id="bReloj" type="button">🕒 Reloj: sí</button><button id="bCiudad" type="button">📍 Ciudad: Buenos Aires</button><button id="bAyuda" type="button">❓ Ayuda</button></div>
   </div>
   <div id="listasBar"></div>
   <div id="cats"></div>
@@ -798,6 +800,8 @@
   };
   // "☰ Menú" de la pantalla de canales
   function cerrarMenuCab() { $('menuCab').className = ''; }
+  $('bAyuda').onclick = function () { $('pie').className = $('pie').className === 'ver' ? '' : 'ver'; cerrarMenuCab(); };
+  $('pie').onclick = function () { $('pie').className = ''; };
   $('bMenu').onclick = function () { $('menuCab').className = $('menuCab').className === 'ver' ? '' : 'ver'; };
   ['bBus', 'bYt', 'bControl'].forEach(function (id) { $(id).addEventListener('click', cerrarMenuCab); }); // abren otra pantalla: el menú se cierra
   document.addEventListener('click', function (e) { if ($('menuCab').className === 'ver' && !$('menuCab').contains(e.target) && e.target !== $('bMenu')) cerrarMenuCab(); });
