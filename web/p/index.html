@@ -640,13 +640,15 @@
   }
   function recortar(s, n) { s = String(s || ''); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
   // Subtítulos en español solo para los creadores que no hablan castellano (lista `subtitulos` de canal_pesca.json); en el resto, apagados.
+  var ccManual = null;    // { v, on }: subtítulos elegidos con el botón para el video que suena
   function conSubtitulos(p) { var l = prog && prog.canal && prog.canal.subtitulos; return !!(l && l.indexOf(p.c) >= 0); }
   function reproducirProg(ch, mio) {
     var a = progAhora();
     if (!a) { progActual = null; apagarYt(); avisar('La programación de este canal no está disponible ahora'); mostrarBarra(ch, 'Sin programación'); return; }
     if (a.p.a) { reproducirSpot(ch, mio, a); return; }
     progActual = a.p;
-    mostrarYt('https://www.youtube.com/embed/' + encodeURIComponent(a.p.v) + '?start=' + a.desde + '&autoplay=1&controls=0&disablekb=1&fs=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&enablejsapi=1&hl=es&cc_lang_pref=es&cc_load_policy=' + (conSubtitulos(a.p) ? '1' : '0') + '&origin=' + encodeURIComponent(location.origin), mio, conSubtitulos(a.p));
+    var subs = (ccManual && ccManual.v === a.p.v) ? ccManual.on : conSubtitulos(a.p); // lo que eligió con el botón manda en este video
+    mostrarYt('https://www.youtube.com/embed/' + encodeURIComponent(a.p.v) + '?start=' + a.desde + '&autoplay=1&controls=0&disablekb=1&fs=0&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3&enablejsapi=1&hl=es&cc_lang_pref=es&cc_load_policy=' + (subs ? '1' : '0') + '&origin=' + encodeURIComponent(location.origin), mio, subs);
     mostrarBarra(ch, 'Ahora: ' + recortar(a.p.t, 70) + ' · ' + a.p.c + (a.sig ? '   —   Sigue a las ' + horaAR(a.sig.i) + ': ' + recortar(a.sig.t, 50) : ''));
     // al terminar este programa se pasa al que sigue (el reloj manda; si el video termina antes, avisa YouTube)
     progTimer = setTimeout(function () { if (mio === intento) { progSalto = a.p.i + a.p.d; reproducir(ch); } }, Math.max(1000, (a.p.i + a.p.d - ahoraSeg()) * 1000 + 500));
@@ -806,6 +808,8 @@
   function pintarCC() { $('bCC').textContent = '💬 Subtítulos: ' + (ccOn ? 'sí' : 'no'); }
   $('bCC').onclick = function () {
     ccOn = !ccOn; pintarCC();
+    // En el canal propio se vuelve a pedir el video en el mismo minuto con cc_load_policy (lo único que YouTube respeta sin controles en pantalla)
+    if (actual && actual.prog && progActual) { ccManual = { v: progActual.v, on: ccOn }; reproducir(actual); return; }
     try { $('yt').contentWindow.postMessage(JSON.stringify({ event: 'command', func: ccOn ? 'loadModule' : 'unloadModule', args: ['captions'] }), '*'); } catch (e) {}
     clearTimeout(timerBarra); timerBarra = setTimeout(ocultarBarra, 12000);
   };
