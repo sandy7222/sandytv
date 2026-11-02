@@ -153,3 +153,4 @@
 - **Zapping mas rapido:** espera antes de pedir el video bajada de 2000 a 800 ms y preconexion a YouTube. Si vuelven los anuncios al pasar rapido, subir ESPERA_ZAPPING.
 - **Logo flotante:** el logo de Sandy Caza y Pesca TV queda arriba a la derecha (170 px, algo transparente) mientras se ve el canal propio; en los demas canales y en la lista no aparece (#marca).
 - **Canal propio tambien en Argentinos:** aparece en las dos pestañas (Pesca y Camping y Canales Argentinos); el numero es el mismo.
+- **Fecha del video:** debajo del logo flotante se ve la fecha de publicacion (ej. 14 Ago 26). Cada programa de la grilla lleva `f` (segundos UNIX) solo cuando la API de YouTube la informa; los programas ya armados la reciben en la proxima corrida del workflow si siguen entre los ultimos videos del creador. Sin dato, no se muestra nada.

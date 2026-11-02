@@ -1,5 +1,5 @@
 // Grilla de un canal propio hecho con videos de YouTube de los creadores que sigue el dueño.
-// Todo en segundos (hora UNIX). Un programa: { v: idDelVideo, t: título, c: creador, i: inicio, d: duración }.
+// Todo en segundos (hora UNIX). Un programa: { v: idDelVideo, t: título, c: creador, i: inicio, d: duración, f: fecha de publicación (si se sabe) }.
 
 /** Ids de los videos de la lista "subidas" de un canal (YouTube.com/playlist?list=UULF…), del más nuevo al más viejo. */
 export function parsearSubidas(html, max = 15) {
@@ -61,7 +61,7 @@ export function construirGrilla({ anterior = [], candidatos = [], ahora, horas =
     }
     desdeSpot++;
     const c = elegir(candidatos, hist, creadorAnterior);
-    programas.push({ v: c.id, t: c.titulo, c: c.creador, i: t, d: c.dur });
+    programas.push({ v: c.id, t: c.titulo, c: c.creador, i: t, d: c.dur, ...(c.fechaReal && c.publicado ? { f: c.publicado } : {}) }); // f: fecha de publicación, solo si YouTube la informó
     hist[c.id] = t; t += c.dur; creadorAnterior = c.creador;
   }
   return { programas, historial: hist };

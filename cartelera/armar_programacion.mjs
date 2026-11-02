@@ -60,7 +60,7 @@ const subidas = await conLimite(config.creadores, 4, async c => {
 });
 for (const { c, ids, fechas } of subidas) {
   console.log(`  ${c.nombre}: ${ids.length} videos`);
-  ids.forEach((id, rank) => { if (!vistos.has(id)) vistos.set(id, { id, creador: c.nombre, publicado: fechas?.[id] || ahora - rank * 86400 }); });
+  ids.forEach((id, rank) => { if (!vistos.has(id)) vistos.set(id, { id, creador: c.nombre, publicado: fechas?.[id] || ahora - rank * 86400, fechaReal: !!fechas?.[id] }); });
 }
 
 const nuevos = [...vistos.keys()].filter(id => !cache[id]);
@@ -90,7 +90,7 @@ console.log(`Candidatos reproducibles: ${candidatos.length} de ${vistos.size}`);
 // Protección: sin candidatos no se publica una grilla vacía (queda la anterior)
 if (!candidatos.length) { console.error('No quedó ningún video reproducible; no se escribe nada.'); process.exit(2); }
 
-const { programas, historial } = construirGrilla({ anterior: previo?.programas || [], candidatos, ahora, horas: config.horas ?? 48, historial: previo?.historial || {}, auspicios: config.auspicios || [] });
+const { programas, historial } = construirGrilla({ anterior: (previo?.programas || []).map(p => !p.f && !p.a && vistos.get(p.v)?.fechaReal ? { ...p, f: vistos.get(p.v).publicado } : p), candidatos, ahora, horas: config.horas ?? 48, historial: previo?.historial || {}, auspicios: config.auspicios || [] });
 // Para que la caché no crezca sin fin: solo se guardan los videos que siguen en los feeds
 const videos = Object.fromEntries([...vistos.keys()].filter(id => cache[id]).map(id => [id, cache[id]]));
 const resultado = {

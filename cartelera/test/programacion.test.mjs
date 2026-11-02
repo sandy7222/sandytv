@@ -129,3 +129,14 @@ test('datosDesdeApi: reproducible incrustado, público y no vivo', () => {
   assert.equal(datosDesdeApi(itemApi({ contentDetails: { duration: 'P0D' } })).ok, false);
   assert.equal(datosDesdeApi(null).ok, false);
 });
+
+test('construirGrilla: guarda la fecha real de publicación (f) y no inventa una cuando no se sabe', () => {
+  const cs = [
+    { id: 'a', titulo: 'A', creador: 'X', dur: 1800, publicado: 1700000000, fechaReal: true },
+    { id: 'b', titulo: 'B', creador: 'Y', dur: 1800, publicado: 1700000500 }
+  ];
+  const { programas } = construirGrilla({ anterior: [], candidatos: cs, ahora: 0, horas: 1 });
+  const a = programas.find(p => p.v === 'a'), b = programas.find(p => p.v === 'b');
+  assert.equal(a.f, 1700000000);
+  assert.equal(b.f, undefined);
+});
