@@ -39,7 +39,11 @@
   /* Pantalla de elegir canal */
   /* El tamaño real (ancho, alto y escala) lo fija aplicarTamano(): en un televisor se ve de lejos, así que se agranda todo. */
   #inicio { position:absolute; left:0; top:0; width:100vw; height:100vh; transform-origin:0 0; display:flex; flex-direction:column; padding:20px 36px 14px; }
-  #cab { display:flex; align-items:center; justify-content:space-between; }
+  #cab { display:flex; align-items:center; justify-content:space-between; position:relative; }
+  /* Menú de la pantalla de canales: una sola tecla ☰ y los botones aparecen encima de la lista (no la corren) */
+  #bMenu { font-size:22px; padding:8px 22px; }
+  #menuCab { display:none; position:absolute; right:0; top:100%; z-index:6; flex-wrap:wrap; gap:10px; justify-content:flex-end; max-width:78%; background:#0B1020f7; padding:12px; border-radius:14px; border:2px solid #263248; }
+  #menuCab.ver { display:flex; }
   .logo { font-size:34px; font-weight:800; } .logo b { background:var(--acento); color:var(--fondo); padding:0 9px; border-radius:7px; margin-left:5px; }
   #listasBar, #cats { display:flex; flex-wrap:wrap; gap:10px; margin:12px 0 0; align-items:center; }
   #listasBar button, #cats button { font-size:15px; padding:6px 11px; border-width:2px; }
@@ -106,6 +110,7 @@
   #reproductor.esprog .ytf { pointer-events:none; }
   #controles { z-index:3; position:absolute; top:24px; left:28px; display:flex; gap:10px; flex-wrap:wrap; max-width:60vw; opacity:0; transition:opacity .25s; }
   #controles.ver { opacity:1; }
+  #mas { display:none; } #mas.ver { display:contents; } /* los botones de "Más" aparecen al tocar ⋯ */
   .zona { position:absolute; top:130px; bottom:150px; width:11vw; display:flex; align-items:center; justify-content:center; font-size:64px; color:#fff; cursor:pointer; opacity:0; transition:opacity .25s; z-index:2; user-select:none; }
   .zona:hover { background:#22D3EE22; opacity:1; }
   .zona.ver { opacity:.55; }
@@ -138,7 +143,7 @@
 <div id="inicio">
   <div id="cab">
     <div class="logo">Sandy<b>TV</b></div>
-    <span><button id="bTamano" type="button">🔎 Tamaño: grande</button><button id="bBus" type="button">🔍 Buscar canales</button><button id="bYt" type="button">＋ Canal de YouTube</button><button id="bDet" type="button">🔬 Detective: no</button><button id="bCampo" type="button">⌨ Campo: no</button><button id="bControl" type="button" onclick="location.href='control/'">🎛 Aprender el control</button><button id="bReloj" type="button">🕒 Reloj: sí</button><button id="bCiudad" type="button">📍 Ciudad: Buenos Aires</button></span>
+    <button id="bMenu" type="button">☰ Menú</button><div id="menuCab"><button id="bTamano" type="button">🔎 Tamaño: grande</button><button id="bBus" type="button">🔍 Buscar canales</button><button id="bYt" type="button">＋ Canal de YouTube</button><button id="bDet" type="button">🔬 Detective: no</button><button id="bCampo" type="button">⌨ Campo: no</button><button id="bControl" type="button" onclick="location.href='control/'">🎛 Aprender el control</button><button id="bReloj" type="button">🕒 Reloj: sí</button><button id="bCiudad" type="button">📍 Ciudad: Buenos Aires</button></div>
   </div>
   <div id="listasBar"></div>
   <div id="cats"></div>
@@ -176,14 +181,17 @@
   <div id="controles">
     <button id="bAnt" type="button">▼ Canal anterior</button>
     <button id="bSig" type="button">▲ Canal siguiente</button>
+    <button id="bGrilla" type="button" style="display:none">📅 Programación</button>
+    <button id="bLista" type="button">☰ Lista</button>
+    <button id="bMas" type="button">⋯ Más</button>
+    <span id="mas">
     <button id="bFormato" type="button">▭ Formato: original</button>
     <button id="bFav" type="button">☆ Favorito</button>
-    <button id="bGrilla" type="button" style="display:none">📅 Programación</button>
     <button id="bRelojP" type="button">🕒</button>
     <button id="bRueda" type="button">↕ ▲▼ y CH: sí</button>
-    <button id="bLista" type="button">☰ Lista</button>
     <button id="bDet2" type="button">🔬 Detective: no</button>
     <button id="bCampo2" type="button">⌨ Campo: no</button>
+    </span>
   </div>
   <div id="panelProg">
     <h2 id="progTitulo">Programación</h2>
@@ -741,7 +749,7 @@
     ['barra', 'logoEsq', 'controles', 'zonaAnt', 'zonaSig'].forEach(function (id) { $(id).className = $(id).className.replace(' ver', '') + ' ver'; });
     clearTimeout(timerBarra); timerBarra = setTimeout(ocultarBarra, 5000);
   }
-  function ocultarBarra() { ['barra', 'logoEsq', 'controles', 'zonaAnt', 'zonaSig'].forEach(function (id) { $(id).className = $(id).className.replace(' ver', ''); }); }
+  function ocultarBarra() { $('mas').className = ''; ['barra', 'logoEsq', 'controles', 'zonaAnt', 'zonaSig'].forEach(function (id) { $(id).className = $(id).className.replace(' ver', ''); }); }
   function avisar(t) { var a = $('aviso'); a.textContent = t; a.style.display = 'block'; clearTimeout(timerAviso); timerAviso = setTimeout(function () { a.style.display = 'none'; }, 3000); }
   function volverALista() {
     if (modoSolo) { cerrarGrilla(); return; } // en la app del Noblex, Atrás lo maneja la app
@@ -779,6 +787,16 @@
   $('bAnt').onclick = function () { cambiar(-1); };
   $('bSig').onclick = function () { cambiar(1); };
   $('bLista').onclick = volverALista;
+  // "⋯ Más": los botones menos usados se muestran solo al pedirlos; mientras están abiertos la barra no se esconde tan rápido
+  $('bMas').onclick = function () {
+    var abre = $('mas').className !== 'ver'; $('mas').className = abre ? 'ver' : '';
+    clearTimeout(timerBarra); timerBarra = setTimeout(ocultarBarra, abre ? 12000 : 5000);
+  };
+  // "☰ Menú" de la pantalla de canales
+  function cerrarMenuCab() { $('menuCab').className = ''; }
+  $('bMenu').onclick = function () { $('menuCab').className = $('menuCab').className === 'ver' ? '' : 'ver'; };
+  ['bBus', 'bYt', 'bControl'].forEach(function (id) { $(id).addEventListener('click', cerrarMenuCab); }); // abren otra pantalla: el menú se cierra
+  document.addEventListener('click', function (e) { if ($('menuCab').className === 'ver' && !$('menuCab').contains(e.target) && e.target !== $('bMenu')) cerrarMenuCab(); });
   $('zonaAnt').onclick = function () { cambiar(-1); };
   $('zonaSig').onclick = function () { cambiar(1); };
   $('bFav').onclick = function () {
