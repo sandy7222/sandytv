@@ -193,6 +193,7 @@
     <span id="mas">
     <button id="bFormato" type="button">▭ Formato: original</button>
     <button id="bFav" type="button">☆ Favorito</button>
+    <button id="bCC" type="button">💬 Subtítulos: no</button>
     <button id="bRelojP" type="button">🕒</button>
     <button id="bRueda" type="button">↕ ▲▼ y CH: sí</button>
     <button id="bDet2" type="button">🔬 Detective: no</button>
@@ -559,6 +560,7 @@
     clearTimeout(timerPedido); clearTimeout(timerCortina); $('cortina').className = '';
     clearTimeout(progTimer); progActual = null;
   }
+  var ccOn = false;       // subtítulos de YouTube prendidos en el video que se ve
   var ytCargado = false; // el reproductor nuevo ya cargó (los avisos anteriores son del canal viejo y no valen)
   var ytEsperando = null; // función que destapa, mientras se espera el aviso de YouTube
   // YouTube avisa por mensaje cuando el video está en marcha (estado 1 = reproduciendo); hay que "suscribirse" una vez que cargó el reproductor.
@@ -578,6 +580,7 @@
   });
   function mostrarYt(url, mio, subs) {
     var f = $('yt'), c = $('cortina');
+    ccOn = subs === true; pintarCC();
     clearTimeout(timerCortina);
     c.className = 'tapa';           // se tapa todo ya mismo, antes de tocar el reproductor
     f.className = 'ytf oculto';     // y el reproductor viejo no se ve mientras cambia
@@ -699,6 +702,7 @@
     limpiar(); video.pause(); video.removeAttribute('src'); try { video.load(); } catch (e) {}
     clearTimeout(progTimer); if (!ch.prog) progActual = null;
     $('bGrilla').style.display = ch.prog ? '' : 'none'; if (!ch.prog) cerrarGrilla();
+    $('bCC').style.display = (ch.prog || ch.yt || ch.ytVideo) ? '' : 'none'; // solo hay subtítulos que controlar en YouTube
     if (!(ch.yt || ch.ytVideo || ch.prog)) apagarYt();
     var enlaces = ch.enlaces.filter(function (e) { return esHttps(e.url); }).map(function (e) { return e.url; });
     actual = ch;
@@ -797,6 +801,13 @@
   $('bMas').onclick = function () {
     var abre = $('mas').className !== 'ver'; $('mas').className = abre ? 'ver' : '';
     clearTimeout(timerBarra); timerBarra = setTimeout(ocultarBarra, abre ? 12000 : 5000);
+  };
+  // Subtítulos de YouTube a pedido (la tecla CC del control no le llega a la página): se prenden o apagan con un mensaje al reproductor
+  function pintarCC() { $('bCC').textContent = '💬 Subtítulos: ' + (ccOn ? 'sí' : 'no'); }
+  $('bCC').onclick = function () {
+    ccOn = !ccOn; pintarCC();
+    try { $('yt').contentWindow.postMessage(JSON.stringify({ event: 'command', func: ccOn ? 'loadModule' : 'unloadModule', args: ['captions'] }), '*'); } catch (e) {}
+    clearTimeout(timerBarra); timerBarra = setTimeout(ocultarBarra, 12000);
   };
   // "☰ Menú" de la pantalla de canales
   function cerrarMenuCab() { $('menuCab').className = ''; }
