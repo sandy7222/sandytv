@@ -151,3 +151,4 @@
 
 - **Subtitulos (boton ⋯ Mas → 💬):** la orden por postMessage no funciona con controles ocultos. Ahora en el canal propio el boton vuelve a pedir el video en el mismo minuto con `cc_load_policy` 1/0 (`ccManual`, vale solo para ese video). Falta probar en el Philips.
 - **Zapping mas rapido:** espera antes de pedir el video bajada de 2000 a 800 ms y preconexion a YouTube. Si vuelven los anuncios al pasar rapido, subir ESPERA_ZAPPING.
+- **Logo flotante:** el logo de Sandy Caza y Pesca TV queda arriba a la derecha (170 px, algo transparente) mientras se ve el canal propio; en los demas canales y en la lista no aparece (#marca).
