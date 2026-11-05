@@ -111,6 +111,7 @@
   .ytf.oculto { visibility:hidden; }
   #barra, #logoEsq, #numero { z-index:3; }
   #cortina { position:absolute; inset:0; background:#000; z-index:2; opacity:0; pointer-events:none; transition:opacity .4s; }
+  #transi { width:100%; height:100%; object-fit:cover; display:block; }
   #cortina.tapa { opacity:1; transition:none; }
   /* Franja transparente arriba: el mouse no avisa nada mientras pasa sobre el video de YouTube, así que la barra se despierta con esta franja. */
   #sensor { position:absolute; top:0; left:0; right:0; height:120px; z-index:1; display:none; }
@@ -187,7 +188,7 @@
 <div id="reproductor">
   <video id="video" playsinline></video>
   <iframe id="yt" class="ytf" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="YouTube"></iframe>
-  <div id="cortina"></div>
+  <div id="cortina"><video id="transi" src="transicion.mp4" muted playsinline preload="auto"></video></div>
   <div id="sensor"></div>
   <div id="logoEsq"><img id="logoImg" alt=""></div>
   <div id="controles">
@@ -587,10 +588,12 @@
     var f = $('yt'), c = $('cortina');
     clearTimeout(timerCortina);
     c.className = 'tapa';           // se tapa todo ya mismo, antes de tocar el reproductor
+    try { var tv = $('transi'); tv.currentTime = 0; var pp = tv.play(); if (pp && pp.catch) pp.catch(function () {}); } catch (x) {} // la animación de Sandy TV disimula la espera (si el televisor no la deja, queda negro como antes)
     f.className = 'ytf oculto';     // y el reproductor viejo no se ve mientras cambia
     function destapar() {
       if (mio !== intento) return;
       ytEsperando = null; clearTimeout(timerCortina); f.onload = null; f.className = 'ytf'; c.className = '';
+      setTimeout(function () { if (c.className !== 'tapa') try { $('transi').pause(); } catch (x) {} }, 600);
     }
     ytEsperando = destapar; ytCargado = false;
     // Zapping: el video se pide recién si te quedás ~2 segundos en el canal. Cada pedido puede traer un anuncio de YouTube,
