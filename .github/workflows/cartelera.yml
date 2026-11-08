@@ -72,6 +72,14 @@ jobs:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: node armar_programacion.mjs --salida salida || true
 
+      - name: Programación del canal de Historia
+        if: steps.armar.outputs.publicar == 'si'
+        working-directory: cartelera
+        # Aparte del de pesca: si falla, queda la grilla anterior de este canal y el resto se publica igual.
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: node armar_programacion.mjs --config canal_historia.json --salida salida_historia || true
+
       - name: Informe del día
         if: always()
         run: |
@@ -89,6 +97,7 @@ jobs:
           if [ -d cartelera/salida/logos ]; then cp -r cartelera/salida/logos pagina/logos; fi
           if [ -f cartelera/salida/catalogo.json ]; then cp cartelera/salida/catalogo.json pagina/catalogo.json; fi
           if [ -f cartelera/salida/programacion.json ]; then cp cartelera/salida/programacion.json pagina/programacion.json; fi
+          if [ -f cartelera/salida_historia/programacion.json ]; then cp cartelera/salida_historia/programacion.json pagina/programacion_historia.json; fi
           # Páginas web de SandyTV (por ahora, la prueba del navegador del Philips en /p/)
           cp -r web/. pagina/
 

@@ -220,7 +220,7 @@
 </div>
 <div id="relleno"></div>
 <div id="reloj"></div>
-<div id="marca"><img src="canal-pesca.webp" alt=""></div>
+<div id="marca"><img id="marcaImg" src="canal-pesca.webp" alt=""></div>
 <div id="clima"></div>
 <div id="tecla">Apretá una tecla del control</div>
 
@@ -458,7 +458,7 @@
   function dibujarLista(sinMedir) {
     var cont = $('lista'); cont.innerHTML = ''; $('nav').innerHTML = '';
     var l = activa();
-    var mostrar = l ? canalesDeLista(l) : visibles().filter(function (ch) { return ch.categoria === catActual || (catActual === 'argentina' && ch.prog); }); // el canal propio tambien aparece entre los argentinos
+    var mostrar = l ? canalesDeLista(l) : visibles().filter(function (ch) { return ch.categoria === catActual || (catActual === 'argentina' && ch.prog && ch.categoria === 'pesca'); }); // el canal propio tambien aparece entre los argentinos
     if (l && !mostrar.length) { cont.textContent = 'Esta lista está vacía. Elegí "Todos los canales" y tocá la ☆ de los canales que quieras agregar.'; return; }
     var dest = destino();
     var paginas = Math.max(1, Math.ceil(mostrar.length / porPagina));
@@ -693,12 +693,13 @@
   $('bGrilla').onclick = abrirGrilla;
   $('progCerrar').onclick = cerrarGrilla;
   // El canal se suma a la cartelera si la programación se pudo bajar.
-  function sumarProg() {
-    if (!prog || !prog.programas || !prog.programas.length) return;
+  // Cada canal propio lleva su propia grilla (ch.datos); `prog` apunta a la del canal que se está viendo.
+  function sumarProg(datos, como) {
+    if (!datos || !datos.programas || !datos.programas.length) return;
     var max = 0; canales.forEach(function (x) { if (x.numero > max) max = x.numero; });
-    var nombre = prog.canal && prog.canal.nombre ? prog.canal.nombre : 'Sandy Caza y Pesca TV';
-    if (!categorias.some(function (g) { return g.id === 'pesca'; })) categorias.push({ id: 'pesca', nombre: 'Pesca y Camping' });
-    canales.push({ id: (prog.canal && prog.canal.id) || 'sandytv.pesca', numero: max + 1, nombre: nombre, emisora: 'Canal propio · videos de YouTube', categoria: 'pesca', logo: 'canal-pesca.webp', prog: true, enlaces: [{ url: 'https://www.youtube.com/', puntaje: 0 }] });
+    var nombre = datos.canal && datos.canal.nombre ? datos.canal.nombre : como.nombre;
+    if (!categorias.some(function (g) { return g.id === como.categoria; })) categorias.push({ id: como.categoria, nombre: como.categoriaNombre });
+    canales.push({ id: (datos.canal && datos.canal.id) || como.id, numero: max + 1, nombre: nombre, emisora: 'Canal propio · videos de YouTube', categoria: como.categoria, logo: como.logo, marca: como.marca, prog: true, datos: datos, enlaces: [{ url: 'https://www.youtube.com/', puntaje: 0 }] });
   }
 
   function reproducir(ch, dir) {
@@ -708,7 +709,8 @@
     // Se corta el video anterior ya mismo: si no, queda la última imagen congelada y parece que el botón no hizo nada.
     limpiar(); video.pause(); video.removeAttribute('src'); try { video.load(); } catch (e) {}
     clearTimeout(progTimer); if (!ch.prog) progActual = null;
-    $('marca').className = ch.prog ? 'ver' : ''; // el logo del canal propio queda flotando arriba a la derecha
+    if (ch.prog) { if (actual !== ch) { progSalto = 0; progActual = null; } prog = ch.datos; } // grilla del canal que se mira (al cambiar de canal propio no se arrastra lo salteado del otro)
+    if (ch.marca) $('marcaImg').src = ch.marca; $('marca').className = (ch.prog && ch.marca) ? 'ver' : ''; // el logo del canal propio queda flotando arriba a la derecha
     $('bGrilla').style.display = ch.prog ? '' : 'none'; if (!ch.prog) cerrarGrilla();
     if (!(ch.yt || ch.ytVideo || ch.prog)) apagarYt();
     var enlaces = ch.enlaces.filter(function (e) { return esHttps(e.url); }).map(function (e) { return e.url; });
@@ -1001,6 +1003,7 @@
   var URL_YOUTUBE = URL_CARTELERA.replace('cartelera.json', 'youtube.json');
   var URL_CATALOGO = URL_CARTELERA.replace('cartelera.json', 'catalogo.json');
   var URL_PROG = URL_CARTELERA.replace('cartelera.json', 'programacion.json');
+  var URL_PROG_HIST = URL_CARTELERA.replace('cartelera.json', 'programacion_historia.json');
   function esYoutube(u) { return /^https:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(u || ''); }
   // Los vivos de YouTube no se pueden reproducir como video común: se sacan los canales que solo tienen enlaces de YouTube
   // y se suman los que se incrustan (youtube.json).
@@ -1027,14 +1030,15 @@
     categorias = c.categorias || [];
     canales = (c.canales || []).filter(function (x) { return x.enlaces && x.enlaces.some(function (e) { return esHttps(e.url); }); });
     return fetch(URL_YOUTUBE).then(function (r) { return r.json(); }).catch(function () { return { canales: [] }; }).then(function (y) { sumarYoutube(y); sumarPropios(); sumarAgregados(); return c; })
-      .then(function () { return fetch(URL_PROG).then(function (r) { return r.json(); }).catch(function () { return null; }); }).then(function (p) { prog = p; sumarProg(); return c; });
+      .then(function () { return fetch(URL_PROG).then(function (r) { return r.json(); }).catch(function () { return null; }); }).then(function (p) { sumarProg(p, { id: 'sandytv.pesca', nombre: 'Sandy Caza y Pesca TV', categoria: 'pesca', categoriaNombre: 'Pesca y Camping', logo: 'canal-pesca.webp', marca: 'canal-pesca.webp' });
+        return fetch(URL_PROG_HIST).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }).then(function (h) { sumarProg(h, { id: 'sandytv.historia', nombre: 'Canal Historia', categoria: 'historia', categoriaNombre: 'Historia', logo: '', marca: '' }); return c; });
   }).then(function (c) {
     if (!canales.some(function (x) { return x.categoria === catActual; }) && canales.length) catActual = canales[0].categoria;
     cargarListas();
     if (!datos.listas.length && canales.length) listaInicial(); // la primera vez: "Mi lista" con propuesta corta
     activaId = datos.fijada; // con una lista fijada, abre directo en esa lista
     if (/[?&]solo=pesca/.test(location.search)) {
-      var propios = canales.filter(function (x) { return x.prog; });
+      var propios = canales.filter(function (x) { return x.prog && x.categoria === 'pesca'; });
       if (propios.length) { canales = propios; modoSolo = true; }
     }
     refrescar();

@@ -18,7 +18,7 @@ const config = JSON.parse(await readFile(configRuta, 'utf8'));
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36';
 const ahora = Math.floor(Date.now() / 1000);
 
-if (!config.creadores?.length) { console.error('canal_pesca.json no tiene creadores todavía.'); process.exit(2); }
+if (!config.creadores?.length) { console.error(path.basename(configRuta) + ' no tiene creadores todavía.'); process.exit(2); }
 
 async function bajarTexto(url, ms = 25000) {
   const r = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(ms), headers: { 'user-agent': UA, 'accept-language': 'es-AR,es;q=0.9', cookie: 'CONSENT=YES+1; SOCS=CAI' } });
@@ -51,8 +51,13 @@ const subidas = await conLimite(config.creadores, 4, async c => {
   const max = config.videosPorCreador ?? 15;
   if (CLAVE) {
     try {
-      const j = await api('playlistItems', { part: 'contentDetails', playlistId: `UULF${c.canal.slice(2)}`, maxResults: String(max) });
-      return { c, ids: (j.items || []).map(x => x.contentDetails.videoId), fechas: Object.fromEntries((j.items || []).map(x => [x.contentDetails.videoId, Math.floor(Date.parse(x.contentDetails.videoPublishedAt) / 1000) || 0])) };
+      // La API entrega de a 50: se pide página por página hasta juntar `max` (los canales con videos largos y pocos necesitan profundidad)
+      const items = []; let pagina = '';
+      do {
+        const j = await api('playlistItems', { part: 'contentDetails', playlistId: `UULF${c.canal.slice(2)}`, maxResults: String(Math.min(50, max - items.length)), ...(pagina ? { pageToken: pagina } : {}) });
+        items.push(...(j.items || [])); pagina = j.nextPageToken || '';
+      } while (pagina && items.length < max);
+      return { c, ids: items.map(x => x.contentDetails.videoId), fechas: Object.fromEntries(items.map(x => [x.contentDetails.videoId, Math.floor(Date.parse(x.contentDetails.videoPublishedAt) / 1000) || 0])) };
     } catch (e) { console.error(`  ✗ ${c.nombre} (API): ${e.message}`); return { c, ids: [] }; }
   }
   try { return { c, ids: parsearSubidas(await bajarTexto(`https://www.youtube.com/playlist?list=UULF${c.canal.slice(2)}`), max) }; }

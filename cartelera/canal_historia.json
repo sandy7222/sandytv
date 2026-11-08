@@ -1,0 +1,14 @@
+{
+  "_ayuda": "Segundo canal propio: solo videos completos (30 min o más) del canal oficial de YouTube History Latinoamérica, con los espacios auspiciados de El Guía YA. Mismo formato que canal_pesca.json. Se renueva cada 6 horas.",
+  "id": "sandytv.historia",
+  "nombre": "Canal Historia",
+  "urlPublicada": "https://sandy7222.github.io/sandytv/programacion_historia.json",
+  "horas": 48,
+  "minMinutos": 30,
+  "maxMinutos": 180,
+  "videosPorCreador": 250,
+  "auspicios": [{ "id": "el-guia", "nombre": "El Guía YA", "archivo": "spots/el-guia.mp4", "dur": 30, "cada": 1 }, { "id": "el-guia-2", "nombre": "El Guía YA", "archivo": "spots/el-guia-2.mp4", "dur": 30, "cada": 1 }],
+  "creadores": [
+    { "nombre": "History Latinoamérica", "canal": "UCVvwbez-BNlWvbxtpOx0MGQ" }
+  ]
+}
